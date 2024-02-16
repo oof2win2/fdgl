@@ -1,0 +1,6 @@
+{
+	"name": "fdgl",
+	"workspaces": [
+		"apps/*"
+	]
+}

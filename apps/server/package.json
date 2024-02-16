@@ -1,0 +1,23 @@
+{
+  "name": "fdgl-server",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot run src/index.ts"
+  },
+  "dependencies": {
+    "itty-router": "^4.0.27",
+    "kysely": "^0.27.2",
+    "kysely-bun-sqlite": "^0.3.2",
+    "kysely-migrate": "^0.0.16",
+    "nanoid": "^5.0.5",
+    "valibot": "^0.28.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "@types/bun": "^1.0.5"
+  }
+}
