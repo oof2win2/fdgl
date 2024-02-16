@@ -17,6 +17,7 @@ export type Report = {
 	communityId: string;
 	categoryId: string;
 	revokedAt: string | null;
+	createdAt: string;
 	expiresAt: string;
 };
 

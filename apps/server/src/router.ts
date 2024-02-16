@@ -3,12 +3,14 @@ import categoriesRouter from "./routes/categories";
 import { type RequestType, type CF } from "./types";
 import { MasterAuthenticate } from "./utils/auth";
 import masterCategoriesRouter from "./routes/categories-master";
+import ReportsRouter from "./routes/reports";
 
 const router = Router<RequestType, CF>();
 
 router
 	.get("/", () => "Hello from /")
 	.all("/categories/*", categoriesRouter.handle)
+	.all("/reports/*", ReportsRouter.handle)
 	.all(
 		"/master/categories/*",
 		MasterAuthenticate,

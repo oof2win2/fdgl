@@ -13,6 +13,9 @@ const kysely = new Kysely<DB>({
 	dialect: new BunSqliteDialect({
 		database: new Database(Bun.env["DB_FILENAME"]),
 	}),
+	log: (event) => {
+		console.log(event.query.sql);
+	},
 });
 
 const master_api_key = Bun.env["master_api_key"];
@@ -29,7 +32,6 @@ export default {
 			waitUntil: (_: Promise<unknown>) => null,
 			passThroughOnException: () => null,
 		};
-		console.log(request.url);
 		return router
 			.handle(request, env, ctx)
 			.then(json)

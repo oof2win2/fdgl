@@ -27,6 +27,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn("categoryId", "text", (col) =>
 			col.notNull().references("Category.id").onDelete("cascade")
 		)
+		.addColumn("expiresAt", "text", (col) => col.notNull())
 		// used for marking revocation status
 		.addColumn("revokedAt", "text")
 		.addColumn("expiresAt", "text", (col) => col.notNull())
