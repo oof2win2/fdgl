@@ -24,18 +24,26 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn("communityId", "text", (col) =>
 			col.notNull().references("Community.id").onDelete("cascade")
 		)
-		.addColumn("categoryId", "text", (col) =>
-			col.notNull().references("Category.id").onDelete("cascade")
-		)
 		.addColumn("expiresAt", "text", (col) => col.notNull())
 		// used for marking revocation status
 		.addColumn("revokedAt", "text")
 		.addColumn("expiresAt", "text", (col) => col.notNull())
 		.execute();
+
+	await db.schema
+		.createTable("ReportCategory")
+		.addColumn("id", "integer", (col) => col.primaryKey().autoIncrement())
+		.addColumn("reportId", "text", (col) =>
+			col.notNull().references("Report.id").onDelete("cascade")
+		)
+		.addColumn("categoryId", "text", (col) => col.notNull())
+		.addUniqueConstraint("ReportIdCategoryId", ["reportId", "categoryId"])
+		.execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
 	await db.schema.dropTable("Report").ifExists().execute();
+	await db.schema.dropTable("ReportCategory").ifExists().execute();
 	await db.schema.dropTable("Category").ifExists().execute();
 	await db.schema.dropTable("Community").ifExists().execute();
 }

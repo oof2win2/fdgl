@@ -1,3 +1,5 @@
+import type { Generated } from "kysely";
+
 export type Community = {
 	id: string;
 	contact: string;
@@ -15,9 +17,26 @@ export type Report = {
 	description: string | null;
 	createdBy: string;
 	communityId: string;
-	categoryId: string;
 	revokedAt: string | null;
 	createdAt: string;
+	expiresAt: string;
+};
+
+export type ReportCategory = {
+	id: Generated<number>;
+	reportId: string;
+	categoryId: string;
+};
+
+export type ReportProof = {
+	id: Generated<number>;
+	reportId: string;
+	proofLink: string;
+};
+
+export type Authorization = {
+	id: string;
+	communityId: string;
 	expiresAt: string;
 };
 
@@ -25,4 +44,7 @@ export interface DB {
 	Community: Community;
 	Category: Category;
 	Report: Report;
+	ReportCategory: ReportCategory;
+	ReportProof: ReportProof;
+	Authorization: Authorization;
 }

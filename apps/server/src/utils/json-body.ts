@@ -38,8 +38,7 @@ export type JSONParsedBody<
 };
 
 export function getJSONBody<Schema extends BaseSchema>(validator: Schema) {
-	return async (oldReq: RequestType) => {
-		const req = oldReq as JSONParsedRequestType<Output<Schema>>;
+	return async (req: JSONParsedRequestType<Output<Schema>>) => {
 		try {
 			if (req.headers.get("content-type") !== "application/json")
 				return error(400);

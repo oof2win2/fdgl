@@ -5,11 +5,11 @@ import type { DB } from "../db-types";
 import type { SqlBool } from "kysely";
 import type { StringReference } from "kysely";
 
-const ReportsRouter = Router<RequestType, CF>({ base: "/reports" });
+const ReportsRouter = Router({ base: "/reports" });
 
 // GET /:id
 // get a report by ID
-ReportsRouter.get("/:id", async (req, env, _ctx) => {
+ReportsRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
 	const id = req.params["id"];
 	const report = await env.kysely
 		.selectFrom("Report")
@@ -21,10 +21,11 @@ ReportsRouter.get("/:id", async (req, env, _ctx) => {
 
 // GET /
 // get reports by filters
-ReportsRouter.get("/", async (req, env) => {
+ReportsRouter.get<RequestType, CF>("/", async (req, env) => {
 	const params = new URL(req.url).searchParams;
 
-	const query = env.kysely
+	// TODO: reimplement filtering for categoryIds with kysely json or something
+	const reports = env.kysely
 		.selectFrom("Report")
 		.selectAll()
 		.where((wb) => {
@@ -37,7 +38,6 @@ ReportsRouter.get("/", async (req, env) => {
 			};
 
 			check("playername");
-			check("categoryId");
 			check("communityId");
 			check("createdBy");
 
@@ -66,7 +66,7 @@ ReportsRouter.get("/", async (req, env) => {
 			return wb.and(ands);
 		});
 
-	const results = query.execute();
+	const results = reports.execute();
 	return results;
 });
 

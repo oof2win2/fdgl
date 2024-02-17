@@ -18,15 +18,19 @@ const kysely = new Kysely<DB>({
 	},
 });
 
-const master_api_key = Bun.env["master_api_key"];
-if (!master_api_key) throw new Error("Master API key not provided");
+const getEnv = (key: string): string => {
+	const value = Bun.env[key];
+	if (!value) throw new Error(`Env key ${key} was not provided`);
+	return value;
+};
 
 export default {
 	port: 3000,
 	fetch: (request: Request) => {
 		const env: CustomEnv = {
 			kysely,
-			master_api_key,
+			MASTER_API_KEY: getEnv("MASTER_API_KEY"),
+			JWT_SECRET: getEnv("JWT_SECRET"),
 		};
 		const ctx: ExecutionContext = {
 			waitUntil: (_: Promise<unknown>) => null,

@@ -9,7 +9,8 @@ type Env = {
 // the env that we pass to route handlers
 export type CustomEnv = {
 	kysely: Kysely<DB>;
-	master_api_key: string;
+	MASTER_API_KEY: string;
+	JWT_SECRET: string;
 };
 // create a convenient duple
 export type CFEnv = [env: Env, context: ExecutionContext];
