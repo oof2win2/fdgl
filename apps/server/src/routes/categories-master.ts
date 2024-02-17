@@ -1,7 +1,7 @@
 import { Router, error } from "itty-router";
 import type { CF, JSONParsedRequestType, RequestType } from "../types";
 import { object, string, type Output } from "valibot";
-import { getJSONBody } from "../utils/json-body";
+import { getJSONBody, type JSONParsedBody } from "../utils/json-body";
 import { nanoid } from "nanoid";
 
 const masterCategoriesRouter = Router({ base: "/master/categories" });
@@ -12,21 +12,22 @@ const createCategorySchema = object({
 	name: string(),
 	description: string(),
 });
-masterCategoriesRouter.put<
-	JSONParsedRequestType<Output<typeof createCategorySchema>>,
-	CF
->("/", getJSONBody(createCategorySchema), async (req, env) => {
-	const id = nanoid();
-	await env.kysely
-		.insertInto("Category")
-		.values({
-			id,
-			name: req.jsonParsedBody.name,
-			description: req.jsonParsedBody.description,
-		})
-		.execute();
-	return { id };
-});
+masterCategoriesRouter.put<JSONParsedBody<typeof createCategorySchema>, CF>(
+	"/",
+	getJSONBody(createCategorySchema),
+	async (req, env) => {
+		const id = nanoid();
+		await env.kysely
+			.insertInto("Category")
+			.values({
+				id,
+				name: req.jsonParsedBody.name,
+				description: req.jsonParsedBody.description,
+			})
+			.execute();
+		return { id };
+	}
+);
 
 // DELETE /categories/:id
 // delete category
@@ -49,27 +50,28 @@ const updateCategorySchema = object({
 	name: string(),
 	description: string(),
 });
-masterCategoriesRouter.post<
-	JSONParsedRequestType<Output<typeof updateCategorySchema>>,
-	CF
->("/:id/update", getJSONBody(updateCategorySchema), async (req, env) => {
-	const id = req.params["id"];
-	const category = await env.kysely
-		.selectFrom("Category")
-		.selectAll()
-		.where("id", "=", id)
-		.executeTakeFirst();
-	if (!category) return error(404, { message: "Category not found" });
-	await env.kysely
-		.updateTable("Category")
-		.set({
-			name: req.jsonParsedBody.name,
-			description: req.jsonParsedBody.description,
-		})
-		.where("id", "=", id)
-		.execute();
-	return { status: "ok" };
-});
+masterCategoriesRouter.post<JSONParsedBody<typeof updateCategorySchema>, CF>(
+	"/:id/update",
+	getJSONBody(updateCategorySchema),
+	async (req, env) => {
+		const id = req.params["id"];
+		const category = await env.kysely
+			.selectFrom("Category")
+			.selectAll()
+			.where("id", "=", id)
+			.executeTakeFirst();
+		if (!category) return error(404, { message: "Category not found" });
+		await env.kysely
+			.updateTable("Category")
+			.set({
+				name: req.jsonParsedBody.name,
+				description: req.jsonParsedBody.description,
+			})
+			.where("id", "=", id)
+			.execute();
+		return { status: "ok" };
+	}
+);
 
 masterCategoriesRouter.post<RequestType, CF>("/merge", async (req, ctx) => {
 	const params = new URL(req.url).searchParams;

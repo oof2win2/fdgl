@@ -1,7 +1,5 @@
 import {
-	type AnySchema,
 	type BaseSchema,
-	flatten,
 	safeParse,
 	type Output,
 	type SchemaIssues,
@@ -31,6 +29,13 @@ function parseIssues(issues: SchemaIssues): ErrorResponse {
 		errors,
 	};
 }
+
+export type JSONParsedBody<
+	Schema extends BaseSchema,
+	T extends RequestType = RequestType
+> = T & {
+	jsonParsedBody: Output<Schema>;
+};
 
 export function getJSONBody<Schema extends BaseSchema>(validator: Schema) {
 	return async (oldReq: RequestType) => {

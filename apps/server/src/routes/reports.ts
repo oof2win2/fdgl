@@ -1,4 +1,4 @@
-import { Router, error } from "itty-router";
+import { Router } from "itty-router";
 import type { CF, RequestType } from "../types";
 import type { Expression } from "kysely";
 import type { DB } from "../db-types";
