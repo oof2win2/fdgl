@@ -1,6 +1,6 @@
 import { Router, error } from "itty-router";
-import type { CF, JSONParsedRequestType, RequestType } from "../types";
-import { object, string, type Output } from "valibot";
+import type { CF, RequestType } from "../types";
+import { object, string } from "valibot";
 import { getJSONBody, type JSONParsedBody } from "../utils/json-body";
 import { nanoid } from "nanoid";
 

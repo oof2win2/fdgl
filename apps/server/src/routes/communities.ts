@@ -1,28 +1,28 @@
 import { Router } from "itty-router";
 import type { CF, RequestType } from "../types";
 
-const categoriesRouter = Router<RequestType, CF>({ base: "/categories" });
+const communitiesRouter = Router({ base: "/communities" });
 
 // GET /
-// get all categories
-categoriesRouter.get("/", async (_req, env, _ctx) => {
+// get all communities
+communitiesRouter.get<RequestType, CF>("/", async (_req, env, _ctx) => {
 	const categories = await env.kysely
-		.selectFrom("Category")
+		.selectFrom("Community")
 		.selectAll()
 		.execute();
 	return categories;
 });
 
 // GET /:id
-// get a category by it's ID
-categoriesRouter.get("/:id", async (req, env, _ctx) => {
+// get a community by it's ID
+communitiesRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
 	const id = req.params["id"];
 	const category = await env.kysely
-		.selectFrom("Category")
+		.selectFrom("Community")
 		.selectAll()
 		.where("id", "=", id)
 		.executeTakeFirst();
 	return category ?? null;
 });
 
-export default categoriesRouter;
+export default communitiesRouter;

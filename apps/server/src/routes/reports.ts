@@ -11,7 +11,7 @@ const ReportsRouter = Router({ base: "/reports" });
 // GET /:id
 // get a report by ID
 ReportsRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
-	const id = req.params.id;
+	const id = req.params["id"];
 	const report = await env.kysely
 		.selectFrom("Report")
 		.selectAll()

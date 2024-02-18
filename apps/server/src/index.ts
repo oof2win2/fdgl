@@ -6,12 +6,11 @@ import { type DB } from "./db-types";
 import { BunSqliteDialect } from "kysely-bun-sqlite";
 import { Database } from "bun:sqlite";
 
-if (!Bun.env["DB_FILENAME"])
-	throw new Error("DB filename not specified in .env");
+if (!Bun.env.DB_FILENAME) throw new Error("DB filename not specified in .env");
 
 const kysely = new Kysely<DB>({
 	dialect: new BunSqliteDialect({
-		database: new Database(Bun.env["DB_FILENAME"]),
+		database: new Database(Bun.env.DB_FILENAME),
 	}),
 	log: (event) => {
 		console.log(event.query.sql);
