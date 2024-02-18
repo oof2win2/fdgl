@@ -63,6 +63,18 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 		]);
 	if (params.communityIds.length)
 		query = query.where("Report.communityId", "in", params.communityIds);
+	// this mess is basically selecting
+	if (params.categoryIds.length)
+		query = query.where((wb) =>
+			wb(
+				"Report.id",
+				"in",
+				wb
+					.selectFrom("ReportCategory")
+					.select("ReportCategory.reportId")
+					.where("ReportCategory.categoryId", "in", params.categoryIds)
+			)
+		);
 	if (params.createdSince)
 		query = query.where(
 			"Report.createdAt",
@@ -85,20 +97,11 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 	// TODO: add filtering of categories in SQL itself rather than in clientside JS
 
 	const results = await query.execute();
-	const filtered = results
-		.map((report) => ({
-			...report,
-			categories: report.categories.map((c) => c.categoryId),
-		}))
-		.filter((report) => {
-			// if there was no filter applied then just return it
-			if (params.categoryIds.length === 0) return true;
-			// ensure that the report has the filtered category ids
-			return report.categories.some((category) =>
-				params.categoryIds.some((id) => category === id)
-			);
-		});
-	return filtered;
+	const fixedCategories = results.map((report) => ({
+		...report,
+		categories: report.categories.map((c) => c.categoryId),
+	}));
+	return fixedCategories;
 });
 
 // POST /
