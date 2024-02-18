@@ -1,30 +1,17 @@
-import { Router, error } from "itty-router";
+import { Router, error, withParams } from "itty-router";
 import type { CF, RequestType } from "../types";
-import type { Expression } from "kysely";
-import type { DB } from "../db-types";
-import type { SqlBool } from "kysely";
-import type { StringReference } from "kysely";
-import {
-	array,
-	integer,
-	maxValue,
-	minLength,
-	minValue,
-	number,
-	object,
-	string,
-} from "valibot";
+import * as v from "valibot";
 import { getJSONBody, type JSONParsedBody } from "../utils/json-body";
 import { communityAuthorize, type AuthorizedRequest } from "../utils/auth";
 import { nanoid } from "nanoid";
-import { datePlus } from "itty-time";
+import { jsonArrayFrom } from "kysely/helpers/sqlite";
 
 const ReportsRouter = Router({ base: "/reports" });
 
 // GET /:id
 // get a report by ID
 ReportsRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
-	const id = req.params["id"];
+	const id = req.params.id;
 	const report = await env.kysely
 		.selectFrom("Report")
 		.selectAll()
@@ -33,65 +20,95 @@ ReportsRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
 	return report ?? null;
 });
 
+const MaybeDateSchema = v.coerce(v.optional(v.date()), (i) => {
+	// if there is no string return nothing
+	if (!i) return undefined;
+	const d = new Date(i as string);
+	return Number.isNaN(d) ? null : d;
+});
+
 // GET /
-// get reports by filters
-ReportsRouter.get<RequestType, CF>("/", async (req, env) => {
-	const params = new URL(req.url).searchParams;
+// get reports by category, community, and time filters
+const getReportsFiltered = v.object({
+	// these two are technically optional but getAll returns an array even when no values are present
+	categoryIds: v.array(v.string()),
+	communityIds: v.array(v.string()),
+	createdSince: MaybeDateSchema,
+	revokedSince: MaybeDateSchema,
+	updatedSince: MaybeDateSchema,
+});
+ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
+	const searchParams = new URL(req.url).searchParams;
+	console.log(req.params);
+	const params = v.parse(getReportsFiltered, {
+		categoryIds: searchParams.getAll("categoryIds"),
+		communityIds: searchParams.getAll("communityIds"),
+		isRevoked: searchParams.getAll("isRevoked"),
+		createdSince: searchParams.get("createdSince"),
+		revokedSince: searchParams.get("revokedSince"),
+		updatedSince: searchParams.get("updatedSince"),
+	});
 
-	// TODO: reimplement filtering for categoryIds with kysely json or something
-	const reports = env.kysely
+	// basic fetching of the reports with their categories
+	let query = env.kysely
 		.selectFrom("Report")
-		.selectAll()
-		.where((wb) => {
-			const ands: Expression<SqlBool>[] = [];
-			const check = (key: StringReference<DB, "Report">) => {
-				const values = params.getAll(key);
-				if (!values.length) return;
-				if (values.length === 1) ands.push(wb(key, "=", values[0]));
-				else ands.push(wb(key, "in", values));
-			};
+		.selectAll("Report")
+		.select((qb) => [
+			jsonArrayFrom(
+				qb
+					.selectFrom("ReportCategory")
+					.select("ReportCategory.categoryId")
+					.whereRef("ReportCategory.reportId", "=", "Report.id")
+			).as("categories"),
+		]);
+	if (params.communityIds.length)
+		query = query.where("Report.communityId", "in", params.communityIds);
+	if (params.createdSince)
+		query = query.where(
+			"Report.createdAt",
+			"<",
+			params.createdSince.toISOString()
+		);
+	if (params.revokedSince)
+		query = query.where(
+			"Report.revokedAt",
+			"<",
+			params.revokedSince.toISOString()
+		);
+	if (params.updatedSince)
+		query = query.where(
+			"Report.updatedAt",
+			"<",
+			params.updatedSince.toISOString()
+		);
 
-			check("playername");
-			check("communityId");
-			check("createdBy");
+	// TODO: add filtering of categories in SQL itself rather than in clientside JS
 
-			const createdAfter = params.get("createdAfter");
-			if (createdAfter) {
-				const date = new Date(createdAfter);
-				if (!isNaN(date.valueOf())) {
-					ands.push(wb("createdAt", ">", date.toISOString()));
-				}
-			}
-			const expiresAfter = params.get("expiresAfter");
-			if (expiresAfter) {
-				const date = new Date(expiresAfter);
-				if (!isNaN(date.valueOf())) {
-					ands.push(wb("expiresAt", ">", date.toISOString()));
-				}
-			}
-			const expiresBefore = params.get("expiresBefore");
-			if (expiresBefore) {
-				const date = new Date(expiresBefore);
-				if (!isNaN(date.valueOf())) {
-					ands.push(wb("expiresAt", "<", date.toISOString()));
-				}
-			}
-
-			return wb.and(ands);
+	const results = await query.execute();
+	const filtered = results
+		.map((report) => ({
+			...report,
+			categories: report.categories.map((c) => c.categoryId),
+		}))
+		.filter((report) => {
+			// if there was no filter applied then just return it
+			if (params.categoryIds.length === 0) return true;
+			// ensure that the report has the filtered category ids
+			return report.categories.some((category) =>
+				params.categoryIds.some((id) => category === id)
+			);
 		});
-
-	const results = reports.execute();
-	return results;
+	return filtered;
 });
 
 // POST /
 // create a report
-const createReportSchema = object({
-	playername: string(),
-	description: string(),
-	createdBy: string(),
-	categoryIds: array(string(), [minLength(1)]),
-	proofCount: number([integer(), minValue(0), maxValue(25)]),
+const createReportSchema = v.object({
+	playername: v.string(),
+	description: v.string(),
+	createdBy: v.string(),
+	categoryIds: v.array(v.string(), [v.minLength(1)]),
+	proofCount: v.number([v.integer(), v.minValue(0), v.maxValue(25)]),
 });
 ReportsRouter.put<
 	AuthorizedRequest<JSONParsedBody<typeof createReportSchema>>,
@@ -111,7 +128,7 @@ ReportsRouter.put<
 					playername: body.playername,
 					communityId: req.communityId,
 					createdAt: new Date().toISOString(),
-					expiresAt: datePlus("6 months").toISOString(),
+					updatedAt: new Date().toISOString(),
 					description: body.description,
 					createdBy: body.createdBy,
 				})

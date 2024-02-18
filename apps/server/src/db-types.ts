@@ -17,9 +17,10 @@ export type Report = {
 	description: string | null;
 	createdBy: string;
 	communityId: string;
+
 	revokedAt: string | null;
 	createdAt: string;
-	expiresAt: string;
+	updatedAt: string;
 };
 
 export type ReportCategory = {

@@ -11,6 +11,7 @@ export type CustomEnv = {
 	kysely: Kysely<DB>;
 	MASTER_API_KEY: string;
 	JWT_SECRET: string;
+	R2: R2Bucket;
 };
 // create a convenient duple
 export type CFEnv = [env: Env, context: ExecutionContext];

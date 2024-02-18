@@ -23,7 +23,6 @@
 
 		// Some stricter flags
 		"useUnknownInCatchVariables": true,
-		"noPropertyAccessFromIndexSignature": true,
 		"types": ["@cloudflare/workers-types", "@types/bun"]
 	}
 }

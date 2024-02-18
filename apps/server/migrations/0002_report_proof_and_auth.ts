@@ -1,6 +1,7 @@
 import { type Kysely } from "kysely";
+import type { DB } from "../src/db-types";
 
-export async function up(db: Kysely<any>): Promise<void> {
+export async function up(db: Kysely<DB>): Promise<void> {
 	// add report proof
 	await db.schema
 		.createTable("ReportProof")
@@ -20,7 +21,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 }
 
-export async function down(db: Kysely<any>): Promise<void> {
+export async function down(db: Kysely<DB>): Promise<void> {
 	await db.schema.dropTable("Authorization").ifExists().execute();
 	await db.schema.dropTable("ReportProof").ifExists().execute();
 }

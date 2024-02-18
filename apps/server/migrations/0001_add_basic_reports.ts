@@ -1,6 +1,7 @@
-import { sql, type Kysely } from "kysely";
+import { type Kysely } from "kysely";
+import type { DB } from "../src/db-types";
 
-export async function up(db: Kysely<any>): Promise<void> {
+export async function up(db: Kysely<DB>): Promise<void> {
 	await db.schema
 		.createTable("Community")
 		.addColumn("id", "text", (col) => col.primaryKey())
@@ -27,7 +28,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn("expiresAt", "text", (col) => col.notNull())
 		// used for marking revocation status
 		.addColumn("revokedAt", "text")
-		.addColumn("expiresAt", "text", (col) => col.notNull())
 		.execute();
 
 	await db.schema
@@ -41,7 +41,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 }
 
-export async function down(db: Kysely<any>): Promise<void> {
+export async function down(db: Kysely<DB>): Promise<void> {
 	await db.schema.dropTable("Report").ifExists().execute();
 	await db.schema.dropTable("ReportCategory").ifExists().execute();
 	await db.schema.dropTable("Category").ifExists().execute();
