@@ -1,9 +1,9 @@
-import { object, string, optional, type Output, array, merge } from "valibot";
+import { object, string, type Output, array, merge, nullable } from "valibot";
 
 export const Report = object({
 	id: string(),
 	playername: string(),
-	description: optional(string()),
+	description: nullable(string()),
 	createdBy: string(),
 	communityId: string(),
 

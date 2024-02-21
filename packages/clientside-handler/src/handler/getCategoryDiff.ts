@@ -6,8 +6,8 @@ import { arraysIntersect } from "../utils/arraysIntersect";
  * Get the difference of categories applied before and after
  */
 export function getCategoryDiff(
-	reportsBefore: Report[],
-	reportsAfter: Report[]
+	reportsBefore: Pick<Report, "categoryIds">[],
+	reportsAfter: Pick<Report, "categoryIds">[]
 ) {
 	const categoriesBefore = new Set<string>();
 	const categoriesAfter = new Set<string>();

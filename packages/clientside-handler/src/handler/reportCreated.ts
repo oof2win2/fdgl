@@ -1,7 +1,7 @@
 import type { Report } from "@fdgl/types";
 import type { DatabaseAdapter } from "../database-adapter";
 import { arraysIntersect } from "../utils/arraysIntersect";
-import { getCategoryDiff } from "./getActionDiff";
+import { getCategoryDiff } from "./getCategoryDiff";
 import type { ServerAdapter } from "../server-handler";
 import { getExecuteCommand } from "../utils/getActionCommand";
 
