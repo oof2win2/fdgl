@@ -1,4 +1,3 @@
-import type { Report } from "@fdgl/types";
 import type { DatabaseAdapter } from "../database-adapter";
 import type { ServerAdapter } from "../server-handler";
 

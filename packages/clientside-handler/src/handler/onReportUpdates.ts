@@ -43,6 +43,8 @@ export async function onReportUpdates({
 		if (commandsToExecute) commands.push(...commandsToExecute);
 	}
 
+	logger?.info(`Executing ${updates.length} commands from report updates.`);
+
 	// now we save the updates to the db
 	await db.addReportUpdates(updates);
 

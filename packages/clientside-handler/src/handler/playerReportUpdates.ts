@@ -1,11 +1,9 @@
 import type { Report, Revocation } from "@fdgl/types";
 import type { DatabaseAdapter } from "../database-adapter";
-import type { LogAdapter } from "../log-adapter";
-import type { ServerAdapter } from "../server-handler";
 import type { Action } from "../types";
 import { arraysIntersect } from "../utils/arraysIntersect";
-import { getCategoryDiff } from "./getCategoryDiff";
-import { getActionDiff } from "./getActionDiff";
+import { getActionCause } from "../actions/getActionCause";
+import { getExecuteCommand } from "../utils/getActionCommand";
 
 type Params = {
 	updates: (Report | Revocation)[];
@@ -26,12 +24,6 @@ export async function playerReportUpdates({
 	followedCommunities,
 	actions,
 }: Params): Promise<string[] | null> {
-	// first check if the player is the same for all updates, else throw
-	const playername = updates[0].playername;
-	if (updates.some((update) => update.playername !== playername)) {
-		throw new Error("All updates must be for the same player");
-	}
-
 	// we need to filter out the updates that we are interested in for processing
 	const filteredUpdates = updates.filter((update) => {
 		// if we don't follow the community then ignore the report
@@ -52,7 +44,10 @@ export async function playerReportUpdates({
 	if (filteredUpdates.length === 0) return null;
 
 	// now we fetch all of the player's preexisting reports
-	const reportsBefore = await db.getPlayerReports(playername);
+	// the playername should be the same for all reports
+	const reportsBefore = await db.getPlayerReports(
+		filteredUpdates[0]!.playername
+	);
 
 	let reportsAfter = [...reportsBefore];
 	for (const update of filteredUpdates) {
@@ -64,27 +59,38 @@ export async function playerReportUpdates({
 		}
 	}
 
-	// get the list of actions that should be executed and undone
-	const actionDiff = getActionDiff(reportsBefore, reportsAfter, actions);
-	// then get the list of commands to execute
-	const commandsToExexute: string[] = [];
-	for (const actionID of actionDiff.actionsToUndo) {
-		const action = actions.find((action) => action.id === actionID);
-		if (!action) {
-			throw new Error(`Action with id ${actionID} not found`);
+	// now we have the reports before and after the updates.
+	// we can begin processing the actions
+
+	const commandsToRun = [];
+
+	for (const action of actions) {
+		const prevCause = getActionCause(reportsBefore, action);
+		const newCause = getActionCause(reportsAfter, action);
+
+		// if the cause is null, we don't need to do anything
+		// (the action's categories are not in the reports)
+		if (prevCause === null && newCause === null) continue;
+		// or if the cause is the same, we don't need to do anything
+		if (prevCause?.id === newCause?.id) continue;
+
+		// if the prevCause is null then we simply add an execution command
+		// if the newCause is null then we simply add an undo command
+		// if they differ then we add an undo and an execution command (redo)
+
+		if (prevCause === null) {
+			// add an execution command
+			commandsToRun.push(getExecuteCommand(action, newCause!));
+		} else if (newCause === null) {
+			// add an undo command
+			commandsToRun.push(getExecuteCommand(action, prevCause));
+		} else {
+			// add an undo command
+			commandsToRun.push(getExecuteCommand(action, prevCause));
+			// add an execution command
+			commandsToRun.push(getExecuteCommand(action, newCause));
 		}
-		commandsToExexute.push(
-			action.undoCommand.replaceAll("{playername}", playername)
-		);
 	}
-	for (const actionID of actionDiff.actionsToExecute) {
-		const action = actions.find((action) => action.id === actionID);
-		if (!action) {
-			throw new Error(`Action with id ${actionID} not found`);
-		}
-		commandsToExexute.push(
-			action.runCommand.replaceAll("{playername}", playername)
-		);
-	}
-	return commandsToExexute;
+
+	return commandsToRun;
 }

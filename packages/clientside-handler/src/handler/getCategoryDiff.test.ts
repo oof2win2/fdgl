@@ -1,4 +1,3 @@
-// getCategoryDiff.test.js
 import { getCategoryDiff } from "./getCategoryDiff";
 import { expect, test, describe } from "bun:test";
 import { createFakeReport } from "../../test/utils";
