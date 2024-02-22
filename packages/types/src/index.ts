@@ -1,4 +1,12 @@
-import { object, string, type Output, array, merge, nullable } from "valibot";
+import {
+	object,
+	string,
+	type Output,
+	array,
+	merge,
+	nullable,
+	literal,
+} from "valibot";
 
 export const Report = object({
 	id: string(),
@@ -11,7 +19,7 @@ export const Report = object({
 	proofLinks: array(string()),
 
 	createdAt: string(),
-	updatedAt: string(),
+	isRevoked: literal(false),
 });
 export type Report = Output<typeof Report>;
 
@@ -19,6 +27,7 @@ export const Revocation = merge([
 	Report,
 	object({
 		revokedAt: string(),
+		isRevoked: literal(true),
 	}),
 ]);
 export type Revocation = Output<typeof Revocation>;

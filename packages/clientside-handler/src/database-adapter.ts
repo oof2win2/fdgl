@@ -1,4 +1,4 @@
-import type { Category, Community, Report } from "@fdgl/types";
+import type { Category, Community, Report, Revocation } from "@fdgl/types";
 import type {
 	Action,
 	ActionLog,
@@ -26,7 +26,7 @@ export interface DatabaseAdapter {
 	getFollowedCommunities(): Promise<Community[]>;
 
 	// add a report to the database
-	addReport(report: Report): Promise<void>;
+	addReportUpdates(updates: (Report | Revocation)[]): Promise<void>;
 	// add a category to the database
 	addCategory(category: Category): Promise<void>;
 	// add a community to the database

@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 import type { Report } from "@fdgl/types";
+import type { Action } from "../src/types";
 
 /**
  * Get a random element from an array
@@ -45,7 +46,7 @@ export function createTimes<F extends (...args: any[]) => any>(
 	);
 }
 
-export function generateFDGLId() {
+export function createFDGLId() {
 	return faker.string.alphanumeric({ length: 16 });
 }
 
@@ -56,20 +57,29 @@ export function createFakeReport(
 ): Report {
 	const communityId = communityIds
 		? randomElementFromArray(communityIds)
-		: generateFDGLId();
+		: createFDGLId();
 	const categories = categoryIds
 		? randomElementsFromArray(categoryIds)
-		: createTimes(generateFDGLId, faker.number.int({ max: 25 }));
+		: createTimes(createFDGLId, faker.number.int({ max: 25 }));
 	const createdAt = faker.date.past().toISOString();
 	return {
-		id: generateFDGLId(),
+		id: createFDGLId(),
 		playername: playername ?? faker.internet.userName(),
 		proofLinks: [],
 		description: Math.random() > 0.5 ? faker.lorem.sentences() : null,
 		communityId,
 		categoryIds: categories,
 		createdAt,
-		updatedAt: createdAt,
 		createdBy: faker.internet.userName(),
+		isRevoked: false,
+	};
+}
+
+export function createFakeAction(categoryIds: string[]): Action {
+	return {
+		id: createFDGLId(),
+		categoryIds: categoryIds,
+		runCommand: "run command {playername}",
+		undoCommand: "undo command {playername}",
 	};
 }
