@@ -9,7 +9,7 @@ describe("arraysIntersect", () => {
 
 	test("Expect two arrays with two different contents to not intersect", () => {
 		const arrayOne = [1, 2, 3, 4, 5];
-		const arrayTwo = arrayOne.map((i) => i * 10);
+		const arrayTwo = [10, 20, 30, 40, 50];
 		expect(arraysIntersect(arrayOne, arrayTwo)).toBe(false);
 	});
 

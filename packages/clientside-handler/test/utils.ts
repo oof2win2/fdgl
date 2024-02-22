@@ -49,22 +49,22 @@ export function createTimes<F extends (...args: any[]) => any>(
 export function createFDGLId() {
 	return faker.string.alphanumeric({ length: 16 });
 }
-
-export function createFakeReport(
-	playername?: string,
-	categoryIds?: string[],
-	communityIds?: string[]
-): Report {
-	const communityId = communityIds
-		? randomElementFromArray(communityIds)
+type createFakeReportParams = {
+	playername?: string;
+	categoryIds?: string[];
+	communityIds?: string[];
+};
+export function createFakeReport(params: createFakeReportParams = {}): Report {
+	const communityId = params.communityIds
+		? randomElementFromArray(params.communityIds)
 		: createFDGLId();
-	const categories = categoryIds
-		? randomElementsFromArray(categoryIds)
+	const categories = params.categoryIds
+		? randomElementsFromArray(params.categoryIds)
 		: createTimes(createFDGLId, faker.number.int({ max: 25 }));
 	const createdAt = faker.date.past().toISOString();
 	return {
 		id: createFDGLId(),
-		playername: playername ?? faker.internet.userName(),
+		playername: params.playername ?? faker.internet.userName(),
 		proofLinks: [],
 		description: Math.random() > 0.5 ? faker.lorem.sentences() : null,
 		communityId,
