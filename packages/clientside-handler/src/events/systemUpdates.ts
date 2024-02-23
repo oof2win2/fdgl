@@ -64,6 +64,7 @@ export async function systemUpdates(params: Params) {
 	const affectedCommunities = mergedCommunities
 		.flatMap((merge) => [merge.fromCommunityId, merge.toCommunityId])
 		.concat(deletedCommunities);
+	// get all affected reports (any report that has the category or community set to the affected list)
 	const affectedReports = await Promise.all([
 		db.getReports({ categoryIds: affectedCategories }),
 		db.getReports({ communityIds: affectedCommunities }),
