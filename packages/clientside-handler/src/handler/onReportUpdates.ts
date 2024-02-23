@@ -75,7 +75,7 @@ export async function onReportUpdates({
 	await db.addReportUpdates(updates);
 
 	// now we save the executed actions to the db
-	await db.logExecutedActions(commands);
+	await db.saveExecutedActions(commands);
 
 	// now we execute the actions
 	await servers.executeAllServers(commands);

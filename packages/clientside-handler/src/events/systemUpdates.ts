@@ -219,7 +219,7 @@ export async function systemUpdates(params: Params) {
 	// then we save the new actions
 	await db.alterActionCategories(actionsAfterProcess);
 	// then we save the commands
-	await db.logExecutedActions(commandsToExecute);
+	await db.saveExecutedActions(commandsToExecute);
 	// and then we execute the commands
 	await servers.executeAllServers(commandsToExecute);
 }

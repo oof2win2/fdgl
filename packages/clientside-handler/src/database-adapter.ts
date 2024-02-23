@@ -39,7 +39,7 @@ export interface DatabaseAdapter {
 		actions: Pick<Action, "id" | "categoryIds">[],
 	): Promise<void>;
 	// log actions as executed at the current date and time
-	logExecutedActions(commands: string[]): Promise<void>;
+	saveExecutedActions(commands: string[]): Promise<void>;
 	// get a list of all actions that have been executed since a certain date
 	getExecutedActions(since: Date): Promise<ActionLog[]>;
 
