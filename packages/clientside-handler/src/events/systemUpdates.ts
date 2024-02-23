@@ -180,6 +180,34 @@ export async function systemUpdates(params: Params) {
 		if (commands?.length) commandsToExecute.push(...commands);
 	}
 
+	const actionsAfterProcess = actions.map((action) => {
+		const newCategoryIds = [];
+		for (const categoryId of action.categoryIds) {
+			// there are three possible situations here
+			// 1. the category was deleted
+			// 2. the category was merged
+			// 3. no change to the category
+			const mergedCategory = mergedCategories.find(
+				(merge) => merge.fromCategoryId === categoryId,
+			);
+			if (mergedCategory) {
+				// the category was merged, so we only add the new category id to the final list
+				newCategoryIds.push(mergedCategory.toCategoryId);
+				continue;
+			}
+
+			// if the category was deleted, then we skip this category
+			if (deletedCategories.includes(categoryId)) {
+				continue;
+			}
+
+			// finally, if the category was not deleted or merged, we simply let it be
+			newCategoryIds.push(categoryId);
+		}
+		action.categoryIds = newCategoryIds;
+		return action;
+	});
+
 	logger?.info(
 		`Executing ${commandsToExecute.length} commands from system updates.`,
 	);
@@ -188,6 +216,8 @@ export async function systemUpdates(params: Params) {
 	await db.deleteReports(reportsToDelete);
 	// then we overwrite the report cateogorizations (communities and categories)
 	await db.overwriteReportCategorizations(reportsAfter);
+	// then we save the new actions
+	await db.alterActionCategories(actionsAfterProcess);
 	// then we save the commands
 	await db.logExecutedActions(commandsToExecute);
 	// and then we execute the commands
