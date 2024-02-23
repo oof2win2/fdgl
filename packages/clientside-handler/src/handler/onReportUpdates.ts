@@ -3,6 +3,7 @@ import type { DatabaseAdapter } from "../database-adapter";
 import type { LogAdapter } from "../log-adapter";
 import type { ServerAdapter } from "../server-handler";
 import { playerReportUpdates } from "./playerReportUpdates";
+import { arraysIntersect } from "../utils/arraysIntersect";
 
 type Params = {
 	updates: (Report | Revocation)[];
@@ -17,8 +18,12 @@ export async function onReportUpdates({
 	logger,
 	servers,
 }: Params) {
-	const followedCommunities = await db.getFollowedCategories();
-	const followedCategories = await db.getFollowedCategories();
+	const followedCommunities = (await db.getFollowedCategories()).map(
+		(community) => community.id
+	);
+	const followedCategories = (await db.getFollowedCategories()).map(
+		(category) => category.id
+	);
 	const actions = await db.getActions();
 
 	// we need to group the updates by playername
@@ -32,15 +37,34 @@ export async function onReportUpdates({
 	const commands: string[] = [];
 
 	// now we can handle the updates for each player
-	for (const [_, updates] of updatesByPlayer) {
-		const commandsToExecute = await playerReportUpdates({
-			updates,
-			db,
-			actions,
-			followedCommunities: followedCommunities.map((c) => c.id),
-			followedCategories: followedCategories.map((c) => c.id),
+	for (const [playername, updates] of updatesByPlayer) {
+		const filteredUpdates = updates.filter((update) => {
+			// if we don't follow the community then ignore the report
+			if (!followedCommunities.includes(update.communityId)) return false;
+
+			// get an intersection of the categories we follow and the report's categories
+			// if there is one, then we are interested in this report
+			const hasIntersection = arraysIntersect(
+				update.categoryIds,
+				followedCategories
+			);
+			if (hasIntersection) return true;
+			return false;
 		});
-		if (commandsToExecute) commands.push(...commandsToExecute);
+		// none of the updates matched our filters, so we just don't process it
+		// (but still save it to the db for future reference)
+		if (!filteredUpdates.length) continue;
+
+		const previousReports = await db.getPlayerReports(playername);
+
+		const commandsToExecute = playerReportUpdates({
+			filteredUpdates,
+			previousReports,
+			actions,
+		});
+
+		// if we got back some commands that should be executed, then we add them to the list
+		if (commandsToExecute?.length) commands.push(...commandsToExecute);
 	}
 
 	logger?.info(`Executing ${updates.length} commands from report updates.`);

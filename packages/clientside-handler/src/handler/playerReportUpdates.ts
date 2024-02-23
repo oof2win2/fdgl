@@ -1,15 +1,13 @@
 import type { Report, Revocation } from "@fdgl/types";
-import type { DatabaseAdapter } from "../database-adapter";
 import type { Action } from "../types";
-import { arraysIntersect } from "../utils/arraysIntersect";
 import { getActionCause } from "../actions/getActionCause";
 import { getExecuteCommand } from "../utils/getActionCommand";
 
 type Params = {
-	updates: (Report | Revocation)[];
-	db: DatabaseAdapter;
-	followedCommunities: string[];
-	followedCategories: string[];
+	// the updates to process, but already pre-filtered with community and category filters
+	filteredUpdates: (Report | Revocation)[];
+	// the previous reports of the player
+	previousReports: Report[];
 	actions: Action[];
 };
 
@@ -17,39 +15,15 @@ type Params = {
  * Handle player report updates for a single player
  * @returns The actions to execute
  */
-export async function playerReportUpdates({
-	updates,
-	db,
-	followedCategories,
-	followedCommunities,
+export function playerReportUpdates({
+	filteredUpdates,
+	previousReports,
 	actions,
-}: Params): Promise<string[] | null> {
-	// we need to filter out the updates that we are interested in for processing
-	const filteredUpdates = updates.filter((update) => {
-		// if we don't follow the community then ignore the report
-		if (!followedCommunities.includes(update.communityId)) return false;
-
-		// get an intersection of the categories we follow and the report's categories
-		// if there is one, then we are interested in this report
-		const hasIntersection = arraysIntersect(
-			update.categoryIds,
-			followedCategories
-		);
-		if (hasIntersection) return true;
-		return false;
-	});
-
-	// there were no updates we are interested in, so we can return early
-	// since the reports don't match our filters, none of the updates are to be saved
-	if (filteredUpdates.length === 0) return null;
-
-	// now we fetch all of the player's preexisting reports
-	// the playername should be the same for all reports
-	const reportsBefore = await db.getPlayerReports(
-		filteredUpdates[0]!.playername
+}: Params): string[] | null {
+	let reportsAfter = [...previousReports];
+	const revocations = filteredUpdates.filter(
+		(update): update is Revocation => update.isRevoked
 	);
-
-	let reportsAfter = [...reportsBefore];
 	for (const update of filteredUpdates) {
 		// if the update is a revocation, we remove the report from the list
 		if (update.isRevoked) {
@@ -65,7 +39,7 @@ export async function playerReportUpdates({
 	const commandsToRun = [];
 
 	for (const action of actions) {
-		const prevCause = getActionCause(reportsBefore, action);
+		const prevCause = getActionCause(previousReports, action);
 		const newCause = getActionCause(reportsAfter, action);
 
 		// if the cause is null, we don't need to do anything
