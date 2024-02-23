@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import type { Report } from "@fdgl/types";
+import type { Report, Revocation } from "@fdgl/types";
 import type { Action } from "../src/types";
 
 /**
@@ -72,6 +72,14 @@ export function createFakeReport(params: createFakeReportParams = {}): Report {
 		createdAt,
 		createdBy: faker.internet.userName(),
 		isRevoked: false,
+	};
+}
+
+export function createRevocation(report: Report): Revocation {
+	return {
+		...report,
+		revokedAt: faker.date.recent().toISOString(),
+		isRevoked: true,
 	};
 }
 
