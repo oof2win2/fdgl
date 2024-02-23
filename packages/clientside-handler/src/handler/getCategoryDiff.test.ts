@@ -1,6 +1,6 @@
-import { getCategoryDiff } from "./getCategoryDiff";
-import { expect, test, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { createFakeReport } from "../../test/utils";
+import { getCategoryDiff } from "./getCategoryDiff";
 
 describe("getCategoryDiff", () => {
 	test("Expect two empty arrays to provide no additions and deletions", () => {

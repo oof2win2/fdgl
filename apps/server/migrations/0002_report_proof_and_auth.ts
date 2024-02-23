@@ -7,7 +7,7 @@ export async function up(db: Kysely<DB>): Promise<void> {
 		.createTable("ReportProof")
 		.addColumn("id", "integer", (col) => col.primaryKey().autoIncrement())
 		.addColumn("reportId", "text", (col) =>
-			col.notNull().references("Report.id").onDelete("cascade")
+			col.notNull().references("Report.id").onDelete("cascade"),
 		)
 		.addColumn("proofLink", "text", (col) => col.notNull())
 		.execute();

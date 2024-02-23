@@ -1,11 +1,11 @@
 import {
-	object,
-	string,
 	type Output,
 	array,
+	literal,
 	merge,
 	nullable,
-	literal,
+	object,
+	string,
 } from "valibot";
 
 export const Report = object({

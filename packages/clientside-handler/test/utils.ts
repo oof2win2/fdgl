@@ -10,31 +10,33 @@ export function randomElementFromArray<T>(arr: T[]): T {
 }
 
 export function randomElementsFromArray<T>(arr: T[], count?: number): T[] {
-	if (!count) {
-		count = Math.floor(Math.random() * arr.length) + 1;
-	}
+	const amountOfElements = count ?? Math.floor(Math.random() * arr.length) + 1;
 	return (
 		arr
 			// sort the array randomly
 			.sort(() => 0.5 - Math.random())
 			// get the first count elements of the randomly sorted array
-			.slice(0, count)
+			.slice(0, amountOfElements)
 	);
 }
 
-export function createTimes<F extends (...args: any[]) => any>(
+export function createTimes<
+	F extends (...args: Parameters<F>[]) => ReturnType<F>,
+>(
 	creator: F,
 	params: Parameters<F> | (() => Parameters<F>),
-	count: number
+	count: number,
 ): ReturnType<F>[];
-export function createTimes<F extends () => any>(
+export function createTimes<F extends () => ReturnType<F>>(
 	creator: F,
-	count: number
+	count: number,
 ): ReturnType<F>[];
-export function createTimes<F extends (...args: any[]) => any>(
+export function createTimes<
+	F extends (...args: Parameters<F>[]) => ReturnType<F>,
+>(
 	creator: F,
 	params: Parameters<F> | (() => Parameters<F>) | number,
-	count?: number
+	count?: number,
 ): ReturnType<F>[] {
 	if (typeof params === "number") {
 		return Array.from({ length: params }, () => creator());
@@ -42,7 +44,7 @@ export function createTimes<F extends (...args: any[]) => any>(
 
 	// TODO: remove the type cast when i figure out why `count` can be undefined here according to types - which it can't
 	return Array.from({ length: count as number }, () =>
-		typeof params === "function" ? creator(...params()) : creator(...params)
+		typeof params === "function" ? creator(...params()) : creator(...params),
 	);
 }
 

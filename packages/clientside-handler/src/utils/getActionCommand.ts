@@ -7,7 +7,7 @@ export function getExecuteCommand(action: Action, report: Report) {
 		.replaceAll("{PLAYERNAME}", report.playername)
 		.replaceAll(
 			"{DESCRIPTION}",
-			report.description ?? "No description provided"
+			report.description ?? "No description provided",
 		)
 		.replaceAll("{CREATEDBY}", report.createdBy)
 		.replaceAll("{COMMUNITYID}", report.communityId)
@@ -21,7 +21,7 @@ export function getUndoCommand(action: Action, revocation: Revocation) {
 		.replaceAll("{PLAYERNAME}", revocation.playername)
 		.replaceAll(
 			"{DESCRIPTION}",
-			revocation.description ?? "No description provided"
+			revocation.description ?? "No description provided",
 		)
 		.replaceAll("{CREATEDBY}", revocation.createdBy)
 		.replaceAll("{COMMUNITYID}", revocation.communityId)

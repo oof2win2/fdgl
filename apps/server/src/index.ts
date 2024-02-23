@@ -1,10 +1,10 @@
+import { Database } from "bun:sqlite";
 import { error, json } from "itty-router";
+import { Kysely } from "kysely";
+import { BunSqliteDialect } from "kysely-bun-sqlite";
+import { type DB } from "./db-types";
 import router from "./router";
 import type { CustomEnv } from "./types";
-import { Kysely } from "kysely";
-import { type DB } from "./db-types";
-import { BunSqliteDialect } from "kysely-bun-sqlite";
-import { Database } from "bun:sqlite";
 
 if (!Bun.env.DB_FILENAME) throw new Error("DB filename not specified in .env");
 

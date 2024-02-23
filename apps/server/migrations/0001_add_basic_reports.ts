@@ -23,7 +23,7 @@ export async function up(db: Kysely<DB>): Promise<void> {
 		.addColumn("createdBy", "text", (col) => col.notNull())
 		// community and category id, deleted when the parent is deleted
 		.addColumn("communityId", "text", (col) =>
-			col.notNull().references("Community.id").onDelete("cascade")
+			col.notNull().references("Community.id").onDelete("cascade"),
 		)
 		.addColumn("expiresAt", "text", (col) => col.notNull())
 		// used for marking revocation status
@@ -34,7 +34,7 @@ export async function up(db: Kysely<DB>): Promise<void> {
 		.createTable("ReportCategory")
 		.addColumn("id", "integer", (col) => col.primaryKey().autoIncrement())
 		.addColumn("reportId", "text", (col) =>
-			col.notNull().references("Report.id").onDelete("cascade")
+			col.notNull().references("Report.id").onDelete("cascade"),
 		)
 		.addColumn("categoryId", "text", (col) => col.notNull())
 		.addUniqueConstraint("ReportIdCategoryId", ["reportId", "categoryId"])

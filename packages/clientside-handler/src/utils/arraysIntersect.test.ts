@@ -1,6 +1,6 @@
+import { describe, expect, test } from "bun:test";
 // arraysIntersect.test.js
 import { arraysIntersect } from "./arraysIntersect";
-import { expect, test, describe } from "bun:test";
 
 describe("arraysIntersect", () => {
 	test("Expect two empty arrays do not intersect", () => {

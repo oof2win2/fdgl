@@ -1,17 +1,17 @@
 import { Router, error, withParams } from "itty-router";
-import type { CF, RequestType } from "../types";
-import * as v from "valibot";
-import { getJSONBody, type JSONParsedBody } from "../utils/json-body";
-import { communityAuthorize, type AuthorizedRequest } from "../utils/auth";
-import { nanoid } from "nanoid";
 import { jsonArrayFrom } from "kysely/helpers/sqlite";
+import { nanoid } from "nanoid";
+import * as v from "valibot";
+import type { CF, RequestType } from "../types";
+import { type AuthorizedRequest, communityAuthorize } from "../utils/auth";
+import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 
 const ReportsRouter = Router({ base: "/reports" });
 
 // GET /:id
 // get a report by ID
 ReportsRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
-	const id = req.params["id"];
+	const id = req.params.id;
 	const report = await env.kysely
 		.selectFrom("Report")
 		.selectAll()
@@ -58,7 +58,7 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 				qb
 					.selectFrom("ReportCategory")
 					.select("ReportCategory.categoryId")
-					.whereRef("ReportCategory.reportId", "=", "Report.id")
+					.whereRef("ReportCategory.reportId", "=", "Report.id"),
 			).as("categories"),
 		]);
 	if (params.communityIds.length)
@@ -72,26 +72,26 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 				wb
 					.selectFrom("ReportCategory")
 					.select("ReportCategory.reportId")
-					.where("ReportCategory.categoryId", "in", params.categoryIds)
-			)
+					.where("ReportCategory.categoryId", "in", params.categoryIds),
+			),
 		);
 	if (params.createdSince)
 		query = query.where(
 			"Report.createdAt",
 			"<",
-			params.createdSince.toISOString()
+			params.createdSince.toISOString(),
 		);
 	if (params.revokedSince)
 		query = query.where(
 			"Report.revokedAt",
 			"<",
-			params.revokedSince.toISOString()
+			params.revokedSince.toISOString(),
 		);
 	if (params.updatedSince)
 		query = query.where(
 			"Report.updatedAt",
 			"<",
-			params.updatedSince.toISOString()
+			params.updatedSince.toISOString(),
 		);
 
 	// TODO: add filtering of categories in SQL itself rather than in clientside JS
@@ -142,7 +142,7 @@ ReportsRouter.put<
 					body.categoryIds.map((categoryId) => ({
 						reportId: reportId,
 						categoryId,
-					}))
+					})),
 				)
 				.execute();
 			// TODO: handle uploading proof
@@ -168,7 +168,7 @@ ReportsRouter.put<
 				.execute();
 			return error(500, { message: "Creating report failed" });
 		}
-	}
+	},
 );
 
 export default ReportsRouter;

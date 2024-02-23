@@ -1,8 +1,8 @@
 import { Router, error } from "itty-router";
-import type { CF, RequestType } from "../types";
-import { object, string } from "valibot";
-import { getJSONBody, type JSONParsedBody } from "../utils/json-body";
 import { nanoid } from "nanoid";
+import { object, string } from "valibot";
+import type { CF, RequestType } from "../types";
+import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 
 const masterCategoriesRouter = Router({ base: "/master/categories" });
 
@@ -26,13 +26,13 @@ masterCategoriesRouter.put<JSONParsedBody<typeof createCategorySchema>, CF>(
 			})
 			.execute();
 		return { id };
-	}
+	},
 );
 
 // DELETE /categories/:id
 // delete category
 masterCategoriesRouter.delete<RequestType, CF>("/:id", async (req, env) => {
-	const id = req.params["id"];
+	const id = req.params.id;
 	const category = await env.kysely
 		.selectFrom("Category")
 		.selectAll()
@@ -54,7 +54,7 @@ masterCategoriesRouter.post<JSONParsedBody<typeof updateCategorySchema>, CF>(
 	"/:id/update",
 	getJSONBody(updateCategorySchema),
 	async (req, env) => {
-		const id = req.params["id"];
+		const id = req.params.id;
 		const category = await env.kysely
 			.selectFrom("Category")
 			.selectAll()
@@ -70,7 +70,7 @@ masterCategoriesRouter.post<JSONParsedBody<typeof updateCategorySchema>, CF>(
 			.where("id", "=", id)
 			.execute();
 		return { status: "ok" };
-	}
+	},
 );
 
 masterCategoriesRouter.post<RequestType, CF>("/merge", async (req, ctx) => {

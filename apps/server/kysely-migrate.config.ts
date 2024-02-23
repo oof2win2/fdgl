@@ -1,11 +1,10 @@
-import { Kysely } from "kysely";
-import { defineConfig } from "kysely-migrate";
 import { Database } from "bun:sqlite";
+import { Kysely } from "kysely";
 import { BunSqliteDialect } from "kysely-bun-sqlite";
+import { defineConfig } from "kysely-migrate";
 
-if (!Bun.env["DB_FILENAME"])
-	throw new Error("DB filename not specified in .env");
-const db = new Database(Bun.env["DB_FILENAME"]);
+if (!Bun.env.DB_FILENAME) throw new Error("DB filename not specified in .env");
+const db = new Database(Bun.env.DB_FILENAME);
 
 export default defineConfig({
 	db: new Kysely({

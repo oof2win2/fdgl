@@ -1,6 +1,6 @@
 import type { Report, Revocation } from "@fdgl/types";
-import type { Action } from "../types";
 import { getActionCause } from "../actions/getActionCause";
+import type { Action } from "../types";
 import { getExecuteCommand, getUndoCommand } from "../utils/getActionCommand";
 
 type Params = {
@@ -22,7 +22,7 @@ export function playerReportUpdates({
 }: Params): string[] | null {
 	let reportsAfter = [...previousReports];
 	const revocations = filteredUpdates.filter(
-		(update): update is Revocation => update.isRevoked
+		(update): update is Revocation => update.isRevoked,
 	);
 	for (const update of filteredUpdates) {
 		// if the update is a revocation, we remove the report from the list
@@ -54,23 +54,26 @@ export function playerReportUpdates({
 
 		if (prevCause === null) {
 			// add an execution command
+			// biome-ignore lint/style/noNonNullAssertion: only one of the two can be null
 			commandsToRun.push(getExecuteCommand(action, newCause!));
 		} else if (newCause === null) {
 			// the revocation must exist otherwise the report would still be in the list
 			// and not be revoked (so the null assert is safe here)
 			const revocation = revocations.find(
-				(revocation) => revocation.id === prevCause.id
+				(revocation) => revocation.id === prevCause.id,
 			);
 			// add an undo command
+			// biome-ignore lint/style/noNonNullAssertion: see above
 			commandsToRun.push(getUndoCommand(action, revocation!));
 		} else {
 			// the revocation must exist otherwise the report would still be in the list
 			// and not be revoked (so the null assert is safe here)
 			const revocation = revocations.find(
-				(revocation) => revocation.id === prevCause.id
+				(revocation) => revocation.id === prevCause.id,
 			);
 
 			// add an undo command
+			// biome-ignore lint/style/noNonNullAssertion: see above
 			commandsToRun.push(getUndoCommand(action, revocation!));
 			// add an execution command
 			commandsToRun.push(getExecuteCommand(action, newCause));

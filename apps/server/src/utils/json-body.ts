@@ -1,10 +1,10 @@
+import { error } from "itty-router";
 import {
 	type BaseSchema,
-	safeParse,
 	type Output,
 	type SchemaIssues,
+	safeParse,
 } from "valibot";
-import { error } from "itty-router";
 import type { JSONParsedRequestType, RequestType } from "../types";
 
 type ErrorSchema = {
@@ -32,7 +32,7 @@ function parseIssues(issues: SchemaIssues): ErrorResponse {
 
 export type JSONParsedBody<
 	Schema extends BaseSchema,
-	T extends RequestType = RequestType
+	T extends RequestType = RequestType,
 > = T & {
 	jsonParsedBody: Output<Schema>;
 };

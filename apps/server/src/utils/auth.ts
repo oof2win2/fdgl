@@ -1,6 +1,6 @@
+import jwt from "@tsndr/cloudflare-worker-jwt";
 import { error } from "itty-router";
 import type { CustomEnv, RequestType } from "../types";
-import jwt from "@tsndr/cloudflare-worker-jwt";
 
 export async function MasterAuthenticate(req: RequestType, env: CustomEnv) {
 	const authValue = req.headers.get("x-fdgl-auth");
@@ -13,7 +13,7 @@ export type AuthorizedRequest<T extends RequestType = RequestType> = T & {
 };
 export async function communityAuthorize(
 	req: AuthorizedRequest,
-	env: CustomEnv
+	env: CustomEnv,
 ) {
 	const authValue = req.headers.get("x-fdgl-auth");
 	if (!authValue) return error(401);

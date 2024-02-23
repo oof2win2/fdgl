@@ -1,10 +1,10 @@
-import { error, Router } from "itty-router";
+import { Router, error } from "itty-router";
 import categoriesRouter from "./routes/categories";
-import { type RequestType, type CF } from "./types";
-import { MasterAuthenticate } from "./utils/auth";
 import masterCategoriesRouter from "./routes/categories-master";
-import ReportsRouter from "./routes/reports";
 import masterCommunitiesRouter from "./routes/communities-master";
+import ReportsRouter from "./routes/reports";
+import { type CF, type RequestType } from "./types";
+import { MasterAuthenticate } from "./utils/auth";
 
 const router = Router<RequestType, CF>();
 
@@ -15,12 +15,12 @@ router
 	.all(
 		"/master/categories/*",
 		MasterAuthenticate,
-		masterCategoriesRouter.handle
+		masterCategoriesRouter.handle,
 	)
 	.all(
 		"/master/communities/*",
 		MasterAuthenticate,
-		masterCommunitiesRouter.handle
+		masterCommunitiesRouter.handle,
 	)
 	.all("*", () => error(404));
 

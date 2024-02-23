@@ -16,7 +16,7 @@ communitiesRouter.get<RequestType, CF>("/", async (_req, env, _ctx) => {
 // GET /:id
 // get a community by it's ID
 communitiesRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
-	const id = req.params["id"];
+	const id = req.params.id;
 	const category = await env.kysely
 		.selectFrom("Community")
 		.selectAll()

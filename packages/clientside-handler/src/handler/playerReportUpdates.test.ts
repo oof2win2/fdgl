@@ -1,19 +1,19 @@
-import { expect, test, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
 	createFakeAction,
 	createFakeReport,
 	createRevocation,
 	createTimes,
 } from "../../test/utils";
-import { playerReportUpdates } from "./playerReportUpdates";
 import { getExecuteCommand, getUndoCommand } from "../utils/getActionCommand";
+import { playerReportUpdates } from "./playerReportUpdates";
 
 describe("playerReportUpdates", () => {
 	test("Expect it to return an empty array if no actions are provided", () => {
 		const reports = createTimes(
 			createFakeReport,
 			[{ communityIds: ["3"], categoryIds: ["1"], playername: "bob" }],
-			3
+			3,
 		).map((report, i) => {
 			// update the report creation time to be in order
 			report.createdAt = new Date(2021, 1, i + 1).toISOString();
@@ -35,7 +35,7 @@ describe("playerReportUpdates", () => {
 		const reports = createTimes(
 			createFakeReport,
 			[{ communityIds: ["3"], categoryIds, playername: "bob" }],
-			3
+			3,
 		);
 		const action = createFakeAction(categoryIds);
 
@@ -52,7 +52,7 @@ describe("playerReportUpdates", () => {
 		const reports = createTimes(
 			createFakeReport,
 			[{ communityIds: ["3"], categoryIds: ["1"], playername: "bob" }],
-			3
+			3,
 		).map((report, i) => {
 			// update the report creation time to be in order
 			report.createdAt = new Date(2021, 1, i + 1).toISOString();
@@ -79,7 +79,7 @@ describe("playerReportUpdates", () => {
 		const reports = createTimes(
 			createFakeReport,
 			[{ communityIds: ["3"], categoryIds: ["1"], playername: "bob" }],
-			3
+			3,
 		);
 		const firstAction = createFakeAction(["1"]);
 		const secondAction = createFakeAction(["2"]);

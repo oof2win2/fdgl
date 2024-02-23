@@ -1,8 +1,8 @@
 import { Router, error } from "itty-router";
-import type { CF, RequestType } from "../types";
-import { object, string } from "valibot";
-import { getJSONBody, type JSONParsedBody } from "../utils/json-body";
 import { nanoid } from "nanoid";
+import { object, string } from "valibot";
+import type { CF, RequestType } from "../types";
+import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 
 const masterCommunitiesRouter = Router({ base: "/master/communities" });
 
@@ -25,13 +25,13 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 			})
 			.execute();
 		return { id };
-	}
+	},
 );
 
 // DELETE /communities/:id
 // delete community
 masterCommunitiesRouter.delete<RequestType, CF>("/:id", async (req, env) => {
-	const id = req.params["id"];
+	const id = req.params.id;
 	const community = await env.kysely
 		.selectFrom("Community")
 		.selectAll()

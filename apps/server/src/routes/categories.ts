@@ -16,7 +16,7 @@ categoriesRouter.get("/", async (_req, env, _ctx) => {
 // GET /:id
 // get a category by it's ID
 categoriesRouter.get("/:id", async (req, env, _ctx) => {
-	const id = req.params["id"];
+	const id = req.params.id;
 	const category = await env.kysely
 		.selectFrom("Category")
 		.selectAll()

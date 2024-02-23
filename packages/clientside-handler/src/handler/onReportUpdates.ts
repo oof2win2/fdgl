@@ -2,8 +2,8 @@ import type { Report, Revocation } from "@fdgl/types";
 import type { DatabaseAdapter } from "../database-adapter";
 import type { LogAdapter } from "../log-adapter";
 import type { ServerAdapter } from "../server-handler";
-import { playerReportUpdates } from "./playerReportUpdates";
 import { arraysIntersect } from "../utils/arraysIntersect";
+import { playerReportUpdates } from "./playerReportUpdates";
 
 type Params = {
 	updates: (Report | Revocation)[];
@@ -19,10 +19,10 @@ export async function onReportUpdates({
 	servers,
 }: Params) {
 	const followedCommunities = (await db.getFollowedCategories()).map(
-		(community) => community.id
+		(community) => community.id,
 	);
 	const followedCategories = (await db.getFollowedCategories()).map(
-		(category) => category.id
+		(category) => category.id,
 	);
 	const actions = await db.getActions();
 
@@ -46,7 +46,7 @@ export async function onReportUpdates({
 			// if there is one, then we are interested in this report
 			const hasIntersection = arraysIntersect(
 				update.categoryIds,
-				followedCategories
+				followedCategories,
 			);
 			if (hasIntersection) return true;
 			return false;

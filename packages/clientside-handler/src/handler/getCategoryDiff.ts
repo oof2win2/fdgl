@@ -7,7 +7,7 @@ import { arraysIntersect } from "../utils/arraysIntersect";
  */
 export function getCategoryDiff(
 	reportsBefore: Pick<Report, "categoryIds">[],
-	reportsAfter: Pick<Report, "categoryIds">[]
+	reportsAfter: Pick<Report, "categoryIds">[],
 ) {
 	const categoriesBefore = new Set<string>();
 	const categoriesAfter = new Set<string>();

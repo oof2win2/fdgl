@@ -1,4 +1,4 @@
-import { expect, test, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
 	createFakeAction,
 	createFakeReport,
@@ -27,7 +27,7 @@ describe("getActionCause", () => {
 		const reports = createTimes(
 			createFakeReport,
 			[{ categoryIds: ["1", "2"] }],
-			5
+			5,
 		);
 		// we alter the createdAt of each report
 		const oldestReport = reports[0];
