@@ -2,6 +2,15 @@
 
 This file is a documentation of the processes that occur throughout the whole project.
 
+## Handling the update process - clientside handler
+
+First, we process the system updates. They transform our locally stored reports etc. into
+the new communities and categories that they should be, with the addition of
+deduplicating the categories if both the merged from and merged to appear in the list.
+
+Then we process the report updates, as they already have the new category and
+community IDs within them and they basically run just as normal.
+
 ## Handling report updates - clientside handler
 
 Within the handling process of report updates (new reports or revocations), we essentially find
