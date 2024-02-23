@@ -29,36 +29,38 @@ export async function onReportUpdates({
 	// we need to group the updates by playername
 	const updatesByPlayer = new Map<string, (Report | Revocation)[]>();
 	for (const update of updates) {
+		// we filter the reports that we don't follow out
+		if (!followedCommunities.includes(update.communityId)) continue;
+		// get an intersection of the categories we follow and the report's categories
+		// if there is one, then we are interested in this report and we add it to the list
+		const hasIntersection = arraysIntersect(
+			update.categoryIds,
+			followedCategories,
+		);
+		if (!hasIntersection) continue;
+
 		const playerReports = updatesByPlayer.get(update.playername) || [];
 		playerReports.push(update);
 		updatesByPlayer.set(update.playername, playerReports);
 	}
 
 	const commands: string[] = [];
+	const previousPlayerReports = await db.getReports({
+		playernames: Array.from(updatesByPlayer.keys()),
+	});
+	const previousPlayerReportsMap = new Map();
+	for (const report of previousPlayerReports) {
+		const reports = previousPlayerReportsMap.get(report.playername) || [];
+		reports.push(report);
+		previousPlayerReportsMap.set(report.playername, reports);
+	}
 
 	// now we can handle the updates for each player
 	for (const [playername, updates] of updatesByPlayer) {
-		const filteredUpdates = updates.filter((update) => {
-			// if we don't follow the community then ignore the report
-			if (!followedCommunities.includes(update.communityId)) return false;
-
-			// get an intersection of the categories we follow and the report's categories
-			// if there is one, then we are interested in this report
-			const hasIntersection = arraysIntersect(
-				update.categoryIds,
-				followedCategories,
-			);
-			if (hasIntersection) return true;
-			return false;
-		});
-		// none of the updates matched our filters, so we just don't process it
-		// (but still save it to the db for future reference)
-		if (!filteredUpdates.length) continue;
-
-		const previousReports = await db.getPlayerReports(playername);
+		const previousReports = previousPlayerReportsMap.get(playername) || [];
 
 		const commandsToExecute = playerReportUpdates({
-			filteredUpdates,
+			filteredUpdates: updates,
 			previousReports,
 			actions,
 		});
