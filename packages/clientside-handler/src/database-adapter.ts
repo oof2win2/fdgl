@@ -6,11 +6,21 @@ import type {
 	IgnorelistEntry,
 } from "./types";
 
+/**
+ * Filter parameters for the getReports method
+ *
+ * If a parameter is not provided, it is not used as a filter.
+ * All parameters are used as an AND filter.
+ */
+type GetReportFilters = {
+	playernames?: string[];
+	communityIds?: string[];
+	categoryIds?: string[];
+};
+
 export interface DatabaseAdapter {
-	// get all reports in the database
-	getAllReports(): Promise<Report[]>;
-	// get reports but only for a single player
-	getPlayerReports(playername: string): Promise<Report[]>;
+	// get reports
+	getReports(filters?: GetReportFilters): Promise<Report[]>;
 
 	getIgnorelistEntries(): Promise<IgnorelistEntry[]>;
 	getBlacklistEntries(): Promise<BlacklistEntry[]>;
@@ -27,10 +37,10 @@ export interface DatabaseAdapter {
 
 	// add a report to the database
 	addReportUpdates(updates: (Report | Revocation)[]): Promise<void>;
-	// add a category to the database
-	addCategory(category: Category): Promise<void>;
-	// add a community to the database
-	addCommunity(community: Community): Promise<void>;
+	// add categories to the database
+	addCategories(categories: Category[]): Promise<void>;
+	// add communities to the database
+	addCommunities(communities: Community[]): Promise<void>;
 
 	// delete a report from the database
 	deleteReport(reportId: string): Promise<void>;
