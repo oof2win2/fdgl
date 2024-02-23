@@ -1,10 +1,10 @@
 import { Router, error, withParams } from "itty-router";
 import { jsonArrayFrom } from "kysely/helpers/sqlite";
-import { nanoid } from "nanoid";
 import * as v from "valibot";
 import type { CF, RequestType } from "../types";
 import { type AuthorizedRequest, communityAuthorize } from "../utils/auth";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
+import { generateId } from "../utils/nanoid";
 
 const ReportsRouter = Router({ base: "/reports" });
 
@@ -12,20 +12,20 @@ const ReportsRouter = Router({ base: "/reports" });
 // get a report by ID
 ReportsRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
 	const id = req.params.id;
+	if (!id) return error(400, "No ID provided.");
 	const report = await env.kysely
-		.selectFrom("Report")
+		.selectFrom("Reports")
 		.selectAll()
 		.where("id", "=", id)
 		.executeTakeFirst();
 	return report ?? null;
 });
 
-const MaybeDateSchema = v.coerce(v.optional(v.date()), (i) => {
-	// if there is no string return nothing
-	if (!i) return undefined;
-	const d = new Date(i as string);
-	return Number.isNaN(d) ? null : d;
-});
+const DateSchema = v.transform(
+	v.string([v.isoDateTime("The date is badly formatted.")]),
+	(str) => new Date(str),
+	[v.custom<Date>((date) => !Number.isNaN(date), "The date is invalid.")],
+);
 
 // GET /
 // get reports by category, community, and time filters
@@ -33,13 +33,12 @@ const getReportsFiltered = v.object({
 	// these two are technically optional but getAll returns an array even when no values are present
 	categoryIds: v.array(v.string()),
 	communityIds: v.array(v.string()),
-	createdSince: MaybeDateSchema,
-	revokedSince: MaybeDateSchema,
-	updatedSince: MaybeDateSchema,
+	createdSince: v.nullable(DateSchema),
+	revokedSince: v.nullable(DateSchema),
+	updatedSince: v.nullable(DateSchema),
 });
 ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 	const searchParams = new URL(req.url).searchParams;
-	console.log(req.params);
 	const params = v.parse(getReportsFiltered, {
 		categoryIds: searchParams.getAll("categoryIds"),
 		communityIds: searchParams.getAll("communityIds"),
@@ -51,23 +50,23 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 
 	// basic fetching of the reports with their categories
 	let query = env.kysely
-		.selectFrom("Report")
-		.selectAll("Report")
+		.selectFrom("Reports")
+		.selectAll("Reports")
 		.select((qb) => [
 			jsonArrayFrom(
 				qb
 					.selectFrom("ReportCategory")
 					.select("ReportCategory.categoryId")
-					.whereRef("ReportCategory.reportId", "=", "Report.id"),
+					.whereRef("ReportCategory.reportId", "=", "Reports.id"),
 			).as("categories"),
 		]);
 	if (params.communityIds.length)
-		query = query.where("Report.communityId", "in", params.communityIds);
+		query = query.where("Reports.communityId", "in", params.communityIds);
 	// this mess is basically selecting
 	if (params.categoryIds.length)
 		query = query.where((wb) =>
 			wb(
-				"Report.id",
+				"Reports.id",
 				"in",
 				wb
 					.selectFrom("ReportCategory")
@@ -77,24 +76,22 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 		);
 	if (params.createdSince)
 		query = query.where(
-			"Report.createdAt",
+			"Reports.createdAt",
 			"<",
 			params.createdSince.toISOString(),
 		);
 	if (params.revokedSince)
 		query = query.where(
-			"Report.revokedAt",
+			"Reports.revokedAt",
 			"<",
 			params.revokedSince.toISOString(),
 		);
 	if (params.updatedSince)
 		query = query.where(
-			"Report.updatedAt",
+			"Reports.updatedAt",
 			"<",
 			params.updatedSince.toISOString(),
 		);
-
-	// TODO: add filtering of categories in SQL itself rather than in clientside JS
 
 	const results = await query.execute();
 	const fixedCategories = results.map((report) => ({
@@ -108,9 +105,9 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 // create a report
 const createReportSchema = v.object({
 	playername: v.string(),
-	description: v.string(),
+	description: v.optional(v.string()),
 	createdBy: v.string(),
-	categoryIds: v.array(v.string(), [v.minLength(1)]),
+	categoryIds: v.array(v.string(), [v.minLength(1), v.maxLength(100)]),
 	proofCount: v.number([v.integer(), v.minValue(0), v.maxValue(25)]),
 });
 ReportsRouter.put<
@@ -121,10 +118,53 @@ ReportsRouter.put<
 	communityAuthorize,
 	getJSONBody(createReportSchema),
 	async (req, env) => {
-		const reportId = nanoid();
+		const reportId = generateId();
 		const body = req.jsonParsedBody;
-		try {
+		const categories = (
 			await env.kysely
+				.selectFrom("Categories")
+				.select("id")
+				.where("id", "in", body.categoryIds)
+				.execute()
+		).map((c) => c.id);
+		const invalidCategories = body.categoryIds.filter(
+			(c) => !categories.includes(c),
+		);
+		if (invalidCategories.length)
+			return error(
+				400,
+				`Categories ${invalidCategories.join(",")} are invalid`,
+			);
+		await env.kysely
+			.insertInto("Reports")
+			.values({
+				id: reportId,
+				playername: body.playername,
+				communityId: req.communityId,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				description: body.description,
+				createdBy: body.createdBy,
+			})
+			.execute();
+		await env.kysely
+			.insertInto("ReportCategory")
+			.values(
+				body.categoryIds.map((categoryId) => ({
+					reportId: reportId,
+					categoryId,
+				})),
+			)
+			.execute();
+		// TODO: handle uploading proof
+		// const proofIds = Array.from({ length: body.proofCount }, () => generateId());
+		// await env.kysely.insertInto("ReportProof").values
+		return {
+			id: reportId,
+			proofURLs: [],
+		};
+	},
+);
 				.insertInto("Report")
 				.values({
 					id: reportId,

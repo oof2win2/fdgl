@@ -1,0 +1,12 @@
+# Top-level configuration
+name = "my-worker"
+main = "src/index.ts"
+compatibility_date = "2022-07-12"
+
+[dev]
+port = 3000
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "fdgl-maindb"
+database_id = "fb5ec937-8f92-4532-a8c4-9d2d0abc9675"

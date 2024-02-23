@@ -34,7 +34,6 @@ export type Reports = {
     playername: string;
     description: string | null;
     communityId: string;
-    createdBy: string;
     revokedAt: string | null;
     createdAt: string;
     updatedAt: string;

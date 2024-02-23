@@ -5,12 +5,13 @@ import masterCommunitiesRouter from "./routes/communities-master";
 import ReportsRouter from "./routes/reports";
 import { type CF, type RequestType } from "./types";
 import { MasterAuthenticate } from "./utils/auth";
+import communitiesRouter from "./routes/communities";
 
 const router = Router<RequestType, CF>();
 
 router
-	.get("/", () => "Hello from /")
 	.all("/categories/*", categoriesRouter.handle)
+	.all("/communities/*", communitiesRouter.handle)
 	.all("/reports/*", ReportsRouter.handle)
 	.all(
 		"/master/categories/*",

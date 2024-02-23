@@ -2,10 +2,6 @@ import type { IRequestStrict } from "itty-router";
 import type { Kysely } from "kysely";
 import type { DB } from "./db-types";
 
-// the env that we get from cloudflare
-type Env = {
-	DB: D1Database;
-};
 // the env that we pass to route handlers
 export type CustomEnv = {
 	kysely: Kysely<DB>;

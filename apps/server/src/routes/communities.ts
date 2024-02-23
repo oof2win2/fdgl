@@ -7,7 +7,7 @@ const communitiesRouter = Router({ base: "/communities" });
 // get all communities
 communitiesRouter.get<RequestType, CF>("/", async (_req, env, _ctx) => {
 	const categories = await env.kysely
-		.selectFrom("Community")
+		.selectFrom("Communities")
 		.selectAll()
 		.execute();
 	return categories;
@@ -18,7 +18,7 @@ communitiesRouter.get<RequestType, CF>("/", async (_req, env, _ctx) => {
 communitiesRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
 	const id = req.params.id;
 	const category = await env.kysely
-		.selectFrom("Community")
+		.selectFrom("Communities")
 		.selectAll()
 		.where("id", "=", id)
 		.executeTakeFirst();
