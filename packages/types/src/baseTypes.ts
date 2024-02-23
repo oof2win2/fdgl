@@ -1,4 +1,12 @@
-import { type Output, array, literal, merge, nullable, object, string } from "valibot";
+import {
+	type Output,
+	array,
+	literal,
+	merge,
+	nullable,
+	object,
+	string,
+} from "valibot";
 
 export const Report = object({
 	id: string(),
@@ -36,3 +44,10 @@ export const Category = object({
 	description: string(),
 });
 export type Category = Output<typeof Category>;
+
+export const FilterObject = object({
+	id: string(),
+	categoryFilters: array(string()),
+	communityFilters: array(string()),
+});
+export type FilterObject = Output<typeof FilterObject>;
