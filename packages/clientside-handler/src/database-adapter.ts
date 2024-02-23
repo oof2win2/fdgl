@@ -21,6 +21,13 @@ type GetReportFilters = {
 export interface DatabaseAdapter {
 	// get reports
 	getReports(filters?: GetReportFilters): Promise<Report[]>;
+	// delete reports from the db
+	deleteReports(reportIds: string[]): Promise<void>;
+
+	// overwrite the reports in the database to the new filters
+	overwriteReportCategorizations(
+		reports: Pick<Report, "id" | "categoryIds" | "communityId">[],
+	): Promise<void>;
 
 	getIgnorelistEntries(): Promise<IgnorelistEntry[]>;
 	getBlacklistEntries(): Promise<BlacklistEntry[]>;
@@ -42,8 +49,6 @@ export interface DatabaseAdapter {
 	// add communities to the database
 	addCommunities(communities: Community[]): Promise<void>;
 
-	// delete a report from the database
-	deleteReport(reportId: string): Promise<void>;
 	// delete a category from the database
 	deleteCategory(categoryId: string): Promise<void>;
 	// delete a community from the database
