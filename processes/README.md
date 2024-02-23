@@ -12,3 +12,5 @@ is changed (the red reports in the image below), we need to "reexecute" the acti
 the undo action and then the execute action.
 
 ![](handling_report_updates.png)
+![](handling_report_updates_process.png)
+
