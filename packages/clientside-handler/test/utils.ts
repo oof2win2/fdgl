@@ -20,20 +20,16 @@ export function randomElementsFromArray<T>(arr: T[], count?: number): T[] {
 	);
 }
 
-export function createTimes<
-	F extends (...args: Parameters<F>[]) => ReturnType<F>,
->(
+// biome-ignore lint/suspicious/noExplicitAny: lazy to fix it and it works
+export function createTimes<F extends (...args: any[]) => any>(
 	creator: F,
 	params: Parameters<F> | (() => Parameters<F>),
 	count: number,
 ): ReturnType<F>[];
-export function createTimes<F extends () => ReturnType<F>>(
-	creator: F,
-	count: number,
-): ReturnType<F>[];
-export function createTimes<
-	F extends (...args: Parameters<F>[]) => ReturnType<F>,
->(
+// biome-ignore lint/suspicious/noExplicitAny: lazy to fix it and it works
+export function createTimes<F extends () => any>(creator: F, count: number): ReturnType<F>[];
+// biome-ignore lint/suspicious/noExplicitAny: lazy to fix it and it works
+export function createTimes<F extends (...args: any[]) => any>(
 	creator: F,
 	params: Parameters<F> | (() => Parameters<F>) | number,
 	count?: number,
@@ -42,7 +38,6 @@ export function createTimes<
 		return Array.from({ length: params }, () => creator());
 	}
 
-	// TODO: remove the type cast when i figure out why `count` can be undefined here according to types - which it can't
 	return Array.from({ length: count as number }, () =>
 		typeof params === "function" ? creator(...params()) : creator(...params),
 	);

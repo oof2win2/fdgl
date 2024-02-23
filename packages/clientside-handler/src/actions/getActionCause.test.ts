@@ -1,9 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-	createFakeAction,
-	createFakeReport,
-	createTimes,
-} from "../../test/utils";
+import { createFakeAction, createFakeReport, createTimes } from "../../test/utils";
 import { getActionCause } from "./getActionCause";
 
 describe("getActionCause", () => {
@@ -24,11 +20,7 @@ describe("getActionCause", () => {
 
 	test("Expect it to return the oldest report if multiple are provided", () => {
 		const action = createFakeAction(["1", "2"]);
-		const reports = createTimes(
-			createFakeReport,
-			[{ categoryIds: ["1", "2"] }],
-			5,
-		);
+		const reports = createTimes(createFakeReport, [{ categoryIds: ["1", "2"] }], 5);
 		// we alter the createdAt of each report
 		const oldestReport = reports[0];
 		oldestReport.createdAt = new Date(0).toISOString();
