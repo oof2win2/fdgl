@@ -165,49 +165,30 @@ ReportsRouter.put<
 		};
 	},
 );
-				.insertInto("Report")
-				.values({
-					id: reportId,
-					playername: body.playername,
-					communityId: req.communityId,
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
-					description: body.description,
-					createdBy: body.createdBy,
-				})
-				.execute();
-			await env.kysely
-				.insertInto("ReportCategory")
-				.values(
-					body.categoryIds.map((categoryId) => ({
-						reportId: reportId,
-						categoryId,
-					})),
-				)
-				.execute();
-			// TODO: handle uploading proof
-			// const generatedReportProof
-			// await env.kysely.insertInto("ReportProof").values
-			return {
-				id: reportId,
-				proofURLs: [],
-			};
-		} catch {
-			// delete the report data if it happened to get inserted
-			await env.kysely
-				.deleteFrom("Report")
-				.where("id", "=", reportId)
-				.execute();
-			await env.kysely
-				.deleteFrom("ReportCategory")
-				.where("reportId", "=", reportId)
-				.execute();
-			await env.kysely
-				.deleteFrom("ReportProof")
-				.where("reportId", "=", reportId)
-				.execute();
-			return error(500, { message: "Creating report failed" });
-		}
+
+ReportsRouter.delete<AuthorizedRequest<RequestType>, CF>(
+	"/:id",
+	communityAuthorize,
+	async (req, env) => {
+		const id = req.params.id;
+		const report = await env.kysely
+			.selectFrom("Reports")
+			.select("communityId")
+			.where("id", "=", id)
+			.executeTakeFirst();
+		if (!report) return error(404, "Report not found.");
+		if (report.communityId !== req.communityId)
+			return error(403, "You can't delete this report.");
+		const revokedAt = new Date().toISOString();
+		await env.kysely
+			.updateTable("Reports")
+			.where("id", "=", id)
+			.set({
+				revokedAt: revokedAt,
+				updatedAt: revokedAt,
+			})
+			.execute();
+		return "ok";
 	},
 );
 
