@@ -14,3 +14,14 @@ the undo action and then the execute action.
 ![](handling_report_updates.png)
 ![](handling_report_updates_process.png)
 
+## Handling system updates - clientside handler
+
+System updates (such as creation, removal, merging for categories and communities) need to be
+handled on the clientside as well to ensure that the correct reports are stored and that
+the correct commands are generated. The process is similar to the handling of report updates,
+as we need to identify the difference between the state before and after the update. The
+difference is that we must modify the reports ourselves, as the server does not send us
+any changes. We also need to update the stored Action objects within the database to
+link to the correct categories.
+
+![](handling_system_updates.png)
