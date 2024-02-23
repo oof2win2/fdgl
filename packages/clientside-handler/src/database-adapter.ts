@@ -45,6 +45,8 @@ export interface DatabaseAdapter {
 
 	getFollowedCategories(): Promise<Category[]>;
 	getFollowedCommunities(): Promise<Community[]>;
+	setFollowedCategories(categoryIds: string[]): Promise<void>;
+	setFollowedCommunities(communityIds: string[]): Promise<void>;
 
 	// add a report to the database
 	addReportUpdates(updates: (Report | Revocation)[]): Promise<void>;
