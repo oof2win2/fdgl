@@ -1,7 +1,7 @@
 import type { Report, Revocation } from "@fdgl/types";
 import type { Action } from "../types";
 import { getActionCause } from "../actions/getActionCause";
-import { getExecuteCommand } from "../utils/getActionCommand";
+import { getExecuteCommand, getUndoCommand } from "../utils/getActionCommand";
 
 type Params = {
 	// the updates to process, but already pre-filtered with community and category filters
@@ -56,11 +56,22 @@ export function playerReportUpdates({
 			// add an execution command
 			commandsToRun.push(getExecuteCommand(action, newCause!));
 		} else if (newCause === null) {
+			// the revocation must exist otherwise the report would still be in the list
+			// and not be revoked (so the null assert is safe here)
+			const revocation = revocations.find(
+				(revocation) => revocation.id === prevCause.id
+			);
 			// add an undo command
-			commandsToRun.push(getExecuteCommand(action, prevCause));
+			commandsToRun.push(getUndoCommand(action, revocation!));
 		} else {
+			// the revocation must exist otherwise the report would still be in the list
+			// and not be revoked (so the null assert is safe here)
+			const revocation = revocations.find(
+				(revocation) => revocation.id === prevCause.id
+			);
+
 			// add an undo command
-			commandsToRun.push(getExecuteCommand(action, prevCause));
+			commandsToRun.push(getUndoCommand(action, revocation!));
 			// add an execution command
 			commandsToRun.push(getExecuteCommand(action, newCause));
 		}
