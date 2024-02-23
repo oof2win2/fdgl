@@ -78,7 +78,5 @@ export async function onReportUpdates({
 	await db.logExecutedActions(commands);
 
 	// now we execute the actions
-	for (const command of commands) {
-		await servers.executeAllServers(command);
-	}
+	await servers.executeAllServers(commands);
 }
