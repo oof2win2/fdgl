@@ -25,9 +25,9 @@ export type ReportCategory = {
     categoryId: string;
 };
 export type ReportProof = {
-    id: Generated<number>;
-    reportId: string;
     proofId: string;
+    reportId: string;
+    uploadExpiresAt: string | null;
 };
 export type Reports = {
     id: string;

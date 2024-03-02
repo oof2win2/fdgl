@@ -32,3 +32,4 @@ console.log(latestFile);
 await Bun.write(`migrations/${latestFile}`, sqlSchema);
 
 await $`bun wrangler d1 migrations apply fdgl-maindb --local`;
+await $`bun prisma generate`;

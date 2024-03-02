@@ -1,10 +1,12 @@
 import { Router, error, withParams } from "itty-router";
 import { jsonArrayFrom } from "kysely/helpers/sqlite";
 import * as v from "valibot";
+import { AwsV4Signer } from "aws4fetch";
 import type { CF, RequestType } from "../types";
 import { type AuthorizedRequest, communityAuthorize } from "../utils/auth";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 import { generateId } from "../utils/nanoid";
+import { datePlus } from "itty-time";
 
 const ReportsRouter = Router({ base: "/reports" });
 
@@ -135,6 +137,32 @@ ReportsRouter.put<
 				400,
 				`Categories ${invalidCategories.join(",")} are invalid`,
 			);
+
+		// first we create proof upload URLs
+		const reportProofUrls = [];
+		const proofIds = Array.from({ length: body.proofCount }, () =>
+			generateId(),
+		);
+
+		for (const proofId of proofIds) {
+			const url = new URL(
+				`https://${env.R2_bucket_name}.${env.CF_account_id}.r2.cloudflarestorage.com/${proofId}`,
+			);
+			// expire in an hour
+			url.searchParams.set("X-Amz-Expires", "3600");
+
+			const preSignedRequest = new AwsV4Signer({
+				accessKeyId: env.R2_accessKeyId,
+				secretAccessKey: env.R2_secretAccessKey,
+				method: "PUT",
+				url: url.toString(),
+				signQuery: true,
+			});
+			const signed = await preSignedRequest.sign();
+			reportProofUrls.push(signed.url.toString());
+		}
+
+		// now we insert everything into the database
 		await env.kysely
 			.insertInto("Reports")
 			.values({
@@ -156,12 +184,20 @@ ReportsRouter.put<
 				})),
 			)
 			.execute();
-		// TODO: handle uploading proof
-		// const proofIds = Array.from({ length: body.proofCount }, () => generateId());
-		// await env.kysely.insertInto("ReportProof").values
+		await env.kysely
+			.insertInto("ReportProof")
+			.values(
+				proofIds.map((id) => ({
+					proofId: id,
+					reportId: reportId,
+					uploadExpiresAt: datePlus("1 hour").toISOString(),
+				})),
+			)
+			.execute();
+
 		return {
 			id: reportId,
-			proofURLs: [],
+			proofURLs: reportProofUrls,
 		};
 	},
 );
