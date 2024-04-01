@@ -12,6 +12,5 @@ ALTER TABLE "new_ReportProof" RENAME TO "ReportProof";
 CREATE INDEX "ReportProof_reportId" ON "ReportProof"("reportId");
 CREATE INDEX "ReportProof_uploadExpiresAt" ON "ReportProof"("uploadExpiresAt");
 CREATE UNIQUE INDEX "ReportProof_reportId_proofId_key" ON "ReportProof"("reportId", "proofId");
-PRAGMA foreign_key_check;
 PRAGMA foreign_keys=ON;
 
