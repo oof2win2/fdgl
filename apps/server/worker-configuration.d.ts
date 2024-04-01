@@ -4,8 +4,5 @@ interface Env {
 	R2: R2Bucket;
 	MASTER_API_KEY: string;
 	JWT_SECRET: string;
-	R2_accessKeyId: string;
-	R2_secretAccessKey: string;
-	R2_bucket_name: string;
-	CF_account_id: string;
+	R2_SIGNING_SECRET: string
 }
