@@ -20,8 +20,10 @@ export const Communities = sqliteTable("Communities", {
 
 export const Authorization = sqliteTable("Authorization", {
 	id: text("id").primaryKey(),
-	communityId: text("id").references(() => Communities.id),
-	expiresAt: text("id"),
+	communityId: text("id")
+		.notNull()
+		.references(() => Communities.id),
+	expiresAt: text("id").notNull(),
 });
 export const authorizationRelations = relations(Authorization, ({ one }) => ({
 	community: one(Communities, {
