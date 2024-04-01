@@ -1,11 +1,12 @@
 {
-	"name": "fdgl",
-	"devDependencies": {
-		"@biomejs/biome": "1.5.3"
-	},
-	"workspaces": [
-		"packages/types",
-		"packages/clientside-handler",
-		"apps/server"
-	]
+  "name": "fdgl",
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3",
+    "wrangler": "latest"
+  },
+  "workspaces": [
+    "packages/types",
+    "packages/clientside-handler",
+    "apps/server"
+  ]
 }
