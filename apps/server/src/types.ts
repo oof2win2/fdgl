@@ -7,11 +7,8 @@ export type CustomEnv = {
 	kysely: Kysely<DB>;
 	MASTER_API_KEY: string;
 	JWT_SECRET: string;
+	R2_SIGNING_SECRET: string;
 	R2: R2Bucket;
-	R2_accessKeyId: string;
-	R2_secretAccessKey: string;
-	R2_bucket_name: string;
-	CF_account_id: string;
 };
 // create a convenient duple
 export type CFEnv = [env: Env, context: ExecutionContext];

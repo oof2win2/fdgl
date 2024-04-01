@@ -1,12 +1,11 @@
 import { Router, error, withParams } from "itty-router";
 import { jsonArrayFrom } from "kysely/helpers/sqlite";
 import * as v from "valibot";
-import { AwsV4Signer } from "aws4fetch";
 import type { CF, RequestType } from "../types";
 import { type AuthorizedRequest, communityAuthorize } from "../utils/auth";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 import { generateId } from "../utils/nanoid";
-import { datePlus } from "itty-time";
+import { createUploadUrl, verifyUploadUrl } from "../utils/proofUpload";
 
 const ReportsRouter = Router({ base: "/reports" });
 
@@ -145,21 +144,9 @@ ReportsRouter.put<
 		);
 
 		for (const proofId of proofIds) {
-			const url = new URL(
-				`https://${env.R2_bucket_name}.${env.CF_account_id}.r2.cloudflarestorage.com/${proofId}`,
-			);
-			// expire in an hour
-			url.searchParams.set("X-Amz-Expires", "3600");
-
-			const preSignedRequest = new AwsV4Signer({
-				accessKeyId: env.R2_accessKeyId,
-				secretAccessKey: env.R2_secretAccessKey,
-				method: "PUT",
-				url: url.toString(),
-				signQuery: true,
-			});
-			const signed = await preSignedRequest.sign();
-			reportProofUrls.push(signed.url.toString());
+			// create a URL to upload the files to with the base being set to whatever made the request here
+			const url = await createUploadUrl(reportId, proofId, req.url, env);
+			reportProofUrls.push(url);
 		}
 
 		// now we insert everything into the database
@@ -184,21 +171,50 @@ ReportsRouter.put<
 				})),
 			)
 			.execute();
-		await env.kysely
-			.insertInto("ReportProof")
-			.values(
-				proofIds.map((id) => ({
-					proofId: id,
-					reportId: reportId,
-					uploadExpiresAt: datePlus("1 hour").toISOString(),
-				})),
-			)
-			.execute();
 
 		return {
 			id: reportId,
 			proofURLs: reportProofUrls,
 		};
+	},
+);
+
+// upload report proof
+ReportsRouter.put<RequestType, CF>(
+	"/:reportId/proof/:proofId",
+	async (req, env) => {
+		const isValidRequest = await verifyUploadUrl(req, env);
+		if (!isValidRequest)
+			return error(
+				400,
+				"The request is not authenticated properly or is expired",
+			);
+
+		const reportId = req.params.reportId;
+		const proofId = req.params.proofId;
+		// save the image into R2
+		await env.R2.put(proofId, req.body);
+		// save the info about the image into the database
+		await env.kysely
+			.insertInto("ReportProof")
+			.values({
+				reportId,
+				proofId,
+			})
+			.execute();
+
+		return "ok";
+	},
+);
+
+ReportsRouter.get<RequestType, CF>(
+	"/:reportId/proof/:proofId",
+	async (req, env) => {
+		const proofId = req.params.proofId;
+
+		const img = await env.R2.get(proofId);
+		if (!img) return error(404, "Proof not found");
+		return img.body;
 	},
 );
 
