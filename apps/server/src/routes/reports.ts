@@ -6,11 +6,6 @@ import { type AuthorizedRequest, communityAuthorize } from "../utils/auth";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 import { generateId } from "../utils/nanoid";
 import { createUploadUrl, verifyUploadUrl } from "../utils/proofUpload";
-import { drizzle } from "drizzle-orm/d1";
-import * as schema from "../schema";
-import { ReportCategories, ReportProof, Reports } from "../schema";
-import { SQL, and, eq, gt, inArray } from "drizzle-orm";
-import { arraysIntersect } from "../utils/arraysIntersect";
 
 const ReportsRouter = Router({ base: "/reports" });
 
@@ -19,11 +14,11 @@ const ReportsRouter = Router({ base: "/reports" });
 ReportsRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
 	const id = req.params.id;
 	if (!id) return error(400, "No ID provided.");
-
-	const db = drizzle(env.DB, { schema });
-	const report = await db.query.Reports.findFirst({
-		where: eq(Reports.id, id),
-	});
+	const report = await env.kysely
+		.selectFrom("Reports")
+		.selectAll()
+		.where("id", "=", id)
+		.executeTakeFirst();
 	return report ?? null;
 });
 
@@ -55,44 +50,55 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 	});
 
 	// basic fetching of the reports with their categories
+	let query = env.kysely
+		.selectFrom("Reports")
+		.selectAll("Reports")
+		.select((qb) => [
+			jsonArrayFrom(
+				qb
+					.selectFrom("ReportCategory")
+					.select("ReportCategory.categoryId")
+					.whereRef("ReportCategory.reportId", "=", "Reports.id"),
+			).as("categories"),
+		]);
+	if (params.communityIds.length)
+		query = query.where("Reports.communityId", "in", params.communityIds);
+	// this mess is basically selecting
+	if (params.categoryIds.length)
+		query = query.where((wb) =>
+			wb(
+				"Reports.id",
+				"in",
+				wb
+					.selectFrom("ReportCategory")
+					.select("ReportCategory.reportId")
+					.where("ReportCategory.categoryId", "in", params.categoryIds),
+			),
+		);
+	if (params.createdSince)
+		query = query.where(
+			"Reports.createdAt",
+			"<",
+			params.createdSince.toISOString(),
+		);
+	if (params.revokedSince)
+		query = query.where(
+			"Reports.revokedAt",
+			"<",
+			params.revokedSince.toISOString(),
+		);
+	if (params.updatedSince)
+		query = query.where(
+			"Reports.updatedAt",
+			"<",
+			params.updatedSince.toISOString(),
+		);
 
-	const db = drizzle(env.DB, { schema });
-	const reports = await db.query.Reports.findMany({
-		with: {
-			categories: true,
-			proof: true,
-		},
-		where: (report, { and, inArray }) => {
-			const args: SQL[] = [];
-
-			if (params.communityIds.length)
-				args.push(inArray(report.communityId, params.communityIds));
-
-			if (params.createdSince)
-				args.push(gt(report.createdAt, params.createdSince.toISOString()));
-			if (params.revokedSince)
-				args.push(gt(report.revokedAt, params.revokedSince.toISOString()));
-			if (params.updatedSince)
-				args.push(gt(report.updatedAt, params.updatedSince.toISOString()));
-			return and(...args);
-		},
-	});
-
-	const fixedCategories = reports
-		.map((report) => ({
-			...report,
-			categories: report.categories.map((c) => c.categoryId),
-		}))
-		.filter((report) => {
-			// TODO: try implementing this in sql
-			// if a category filter was provided, filter the reports in accordance to the categories as well
-			if (params.categoryIds) {
-				if (arraysIntersect(report.categories, params.categoryIds)) return true;
-				return false;
-			}
-			// if there was no filter provided then ignore and return the report
-			return true;
-		});
+	const results = await query.execute();
+	const fixedCategories = results.map((report) => ({
+		...report,
+		categories: report.categories.map((c) => c.categoryId),
+	}));
 	return fixedCategories;
 });
 
@@ -115,10 +121,13 @@ ReportsRouter.put<
 	async (req, env) => {
 		const reportId = generateId();
 		const body = req.jsonParsedBody;
-		const db = drizzle(env.DB, { schema });
-		const categories = await db.query.Categories.findMany({
-			where: (category, { inArray }) => inArray(category.id, body.categoryIds),
-		}).then((cats) => cats.map((c) => c.id));
+		const categories = (
+			await env.kysely
+				.selectFrom("Categories")
+				.select("id")
+				.where("id", "in", body.categoryIds)
+				.execute()
+		).map((c) => c.id);
 		const invalidCategories = body.categoryIds.filter(
 			(c) => !categories.includes(c),
 		);
@@ -141,21 +150,27 @@ ReportsRouter.put<
 		}
 
 		// now we insert everything into the database
-		await db.insert(Reports).values({
-			id: reportId,
-			playername: body.playername,
-			communityId: req.communityId,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			description: body.description,
-			createdBy: body.createdBy,
-		});
-		await db.insert(ReportCategories).values(
-			body.categoryIds.map((categoryId) => ({
-				reportId: reportId,
-				categoryId,
-			})),
-		);
+		await env.kysely
+			.insertInto("Reports")
+			.values({
+				id: reportId,
+				playername: body.playername,
+				communityId: req.communityId,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				description: body.description,
+				createdBy: body.createdBy,
+			})
+			.execute();
+		await env.kysely
+			.insertInto("ReportCategory")
+			.values(
+				body.categoryIds.map((categoryId) => ({
+					reportId: reportId,
+					categoryId,
+				})),
+			)
+			.execute();
 
 		return {
 			id: reportId,
@@ -177,13 +192,16 @@ ReportsRouter.put<RequestType, CF>(
 
 		const reportId = req.params.reportId;
 		const proofId = req.params.proofId;
-
-		const db = drizzle(env.DB, { schema });
-
 		// save the image into R2
 		await env.R2.put(proofId, req.body);
 		// save the info about the image into the database
-		await db.insert(ReportProof).values({ reportId, proofId });
+		await env.kysely
+			.insertInto("ReportProof")
+			.values({
+				reportId,
+				proofId,
+			})
+			.execute();
 
 		return "ok";
 	},
@@ -205,27 +223,23 @@ ReportsRouter.delete<AuthorizedRequest<RequestType>, CF>(
 	communityAuthorize,
 	async (req, env) => {
 		const id = req.params.id;
-
-		const db = drizzle(env.DB, { schema });
-
-		const report = await db.query.Reports.findFirst({
-			where: (report, { eq }) => eq(report.id, id),
-			columns: {
-				communityId: true,
-			},
-		});
-
+		const report = await env.kysely
+			.selectFrom("Reports")
+			.select("communityId")
+			.where("id", "=", id)
+			.executeTakeFirst();
 		if (!report) return error(404, "Report not found.");
 		if (report.communityId !== req.communityId)
 			return error(403, "You can't delete this report.");
 		const revokedAt = new Date().toISOString();
-		await db
-			.update(Reports)
+		await env.kysely
+			.updateTable("Reports")
+			.where("id", "=", id)
 			.set({
 				revokedAt: revokedAt,
 				updatedAt: revokedAt,
 			})
-			.where(eq(Reports.id, id));
+			.execute();
 		return "ok";
 	},
 );

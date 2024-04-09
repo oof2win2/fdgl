@@ -5,10 +5,6 @@ import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 import jwt from "@tsndr/cloudflare-worker-jwt";
 import { datePlus } from "itty-time";
 import { generateId } from "../utils/nanoid";
-import { drizzle } from "drizzle-orm/d1";
-import * as schema from "../schema";
-import { Authorization, Communities, Reports } from "../schema";
-import { eq } from "drizzle-orm";
 
 const masterCommunitiesRouter = Router({ base: "/master/communities" });
 
@@ -24,14 +20,14 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 	async (req, env) => {
 		const communityId = generateId();
 		// TODO: validation that contact is a discord user
-
-		const db = drizzle(env.DB);
-
-		db.insert(Communities).values({
-			id: communityId,
-			contact: req.jsonParsedBody.contact,
-			name: req.jsonParsedBody.name,
-		});
+		await env.kysely
+			.insertInto("Communities")
+			.values({
+				id: communityId,
+				contact: req.jsonParsedBody.contact,
+				name: req.jsonParsedBody.name,
+			})
+			.execute();
 
 		const expiry = datePlus("365 days");
 		const apikeyId = generateId();
@@ -43,13 +39,14 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 			},
 			env.JWT_SECRET,
 		);
-
-		db.insert(Authorization).values({
-			id: apikeyId,
-			communityId,
-			expiresAt: expiry.toISOString(),
-		});
-
+		await env.kysely
+			.insertInto("Authorization")
+			.values({
+				id: apikeyId,
+				communityId,
+				expiresAt: expiry.toISOString(),
+			})
+			.execute();
 		return { id: communityId, apikey };
 	},
 );
@@ -58,18 +55,17 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 // delete community
 masterCommunitiesRouter.delete<RequestType, CF>("/:id", async (req, env) => {
 	const id = req.params.id;
-
-	const db = drizzle(env.DB, { schema });
-
-	const community = await db.query.Communities.findFirst({
-		where: eq(Communities.id, id),
-	});
-
+	const community = await env.kysely
+		.selectFrom("Communities")
+		.selectAll()
+		.where("id", "=", id)
+		.executeTakeFirst();
 	if (!community) return error(404, { message: "Community not found" });
-
-	await db.delete(Communities).where(eq(Communities.id, id));
-	await db.delete(Reports).where(eq(Reports.communityId, id));
-
+	await env.kysely.deleteFrom("Communities").where("id", "=", id).execute();
+	await env.kysely
+		.deleteFrom("Reports")
+		.where("communityId", "=", id)
+		.execute();
 	// TODO: do something with all reports on delete
 	return { status: "ok" };
 });

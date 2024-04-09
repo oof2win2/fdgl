@@ -1,9 +1,9 @@
 import { Router, error } from "itty-router";
-import { type CF, type RequestType } from "./types";
 import categoriesRouter from "./routes/categories";
 import masterCategoriesRouter from "./routes/categories-master";
 import masterCommunitiesRouter from "./routes/communities-master";
 import ReportsRouter from "./routes/reports";
+import { type CF, type RequestType } from "./types";
 import { MasterAuthenticate } from "./utils/auth";
 import communitiesRouter from "./routes/communities";
 

@@ -1,0 +1,77 @@
+generator kysely {
+    provider = "prisma-kysely"
+    output   = "../src"
+    fileName = "db-types.ts"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = env("DATABASE_URL")
+}
+
+model Categories {
+    id             String           @id
+    name           String
+    description    String
+    ReportCategory ReportCategory[]
+}
+
+model Communities {
+    id      String @id
+    name    String
+    contact String
+
+    Reports Reports[]
+}
+
+model Reports {
+    id          String      @id
+    playername  String
+    description String?
+    communityId String
+    createdBy   String
+    community   Communities @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+    revokedAt String?
+    createdAt String
+    updatedAt String
+
+    ReportCategory ReportCategory[]
+    ReportProof    ReportProof[]
+
+    @@index([communityId], name: "Reports_communityId")
+    @@index([updatedAt], name: "Reports_updatedAt")
+}
+
+model ReportCategory {
+    id         Int    @id @default(autoincrement())
+    reportId   String
+    categoryId String
+
+    report   Reports    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+    category Categories @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+    @@unique([reportId, categoryId], name: "ReportCategory_reportId_categoryId")
+    @@index([reportId], name: "ReportCategory_reportId")
+}
+
+model ReportProof {
+    proofId  String @id
+    reportId String
+
+    report Reports @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+    uploadExpiresAt String?
+
+    @@unique([reportId, proofId], name: "ReportProof_reportId_proofId")
+    @@index([reportId], name: "ReportProof_reportId")
+    @@index([uploadExpiresAt], name: "ReportProof_uploadExpiresAt")
+}
+
+model Authorization {
+    id          String @id
+    communityId String
+    expiresAt   String
+
+    @@index([communityId], name: "Authorization_communityId")
+}
