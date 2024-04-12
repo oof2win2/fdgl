@@ -5,7 +5,7 @@ import type { CF, RequestType } from "../types";
 import { type AuthorizedRequest, communityAuthorize } from "../utils/auth";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 import { generateId } from "../utils/nanoid";
-import { createUploadUrl, verifyUploadUrl } from "../utils/proofUpload";
+import { AwsV4Signer } from "aws4fetch";
 
 const ReportsRouter = Router({ base: "/reports" });
 
@@ -14,8 +14,7 @@ const ReportsRouter = Router({ base: "/reports" });
 ReportsRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
 	const id = req.params.id;
 	if (!id) return error(400, "No ID provided.");
-	const report = await env.kysely
-		.selectFrom("Reports")
+	const report = await env.DB.selectFrom("Reports")
 		.selectAll()
 		.where("id", "=", id)
 		.executeTakeFirst();
@@ -50,8 +49,7 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 	});
 
 	// basic fetching of the reports with their categories
-	let query = env.kysely
-		.selectFrom("Reports")
+	let query = env.DB.selectFrom("Reports")
 		.selectAll("Reports")
 		.select((qb) =>
 			jsonArrayFrom(
@@ -94,10 +92,24 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 // create a report
 const createReportSchema = v.object({
 	playername: v.string(),
-	description: v.optional(v.string()),
+	description: v.string(),
 	createdBy: v.string(),
 	categoryIds: v.array(v.string(), [v.minLength(1), v.maxLength(100)]),
-	proofCount: v.number([v.integer(), v.minValue(0), v.maxValue(25)]),
+	proofRequests: v.array(
+		v.object({
+			// filesize must be between 1 byte and 8MB
+			// we then transform it to a string for ease of use later
+			filesize: v.transform(
+				v.number([v.minValue(1), v.maxValue(8_000_000)]),
+				(num) => num.toString(),
+			),
+			filetype: v.picklist(
+				["image/jpeg", "image/png"],
+				"Image content type must be image/jpeg or image/png",
+			),
+		}),
+		[v.maxLength(10)],
+	),
 });
 ReportsRouter.put<
 	AuthorizedRequest<JSONParsedBody<typeof createReportSchema>>,
@@ -111,8 +123,7 @@ ReportsRouter.put<
 		const body = req.jsonParsedBody;
 		// we don't fetch categories from cache here because we need to be 100% sure that they exist
 		const categories = (
-			await env.kysely
-				.selectFrom("Categories")
+			await env.DB.selectFrom("Categories")
 				.select("id")
 				.where("id", "in", body.categoryIds)
 				.execute()
@@ -128,19 +139,46 @@ ReportsRouter.put<
 
 		// first we create proof upload URLs
 		const reportProofUrls = [];
-		const proofIds = Array.from({ length: body.proofCount }, () =>
-			generateId(),
-		);
 
-		for (const proofId of proofIds) {
+		// create the aws signer
+		const baseR2Url = new URL(
+			`https://${env.R2_BUCKET_NAME}.${env.ACCOUNT_ID}.r2.cloudflarestorage.com`,
+		);
+		// expire the URL in 1 hour
+		baseR2Url.searchParams.set("X-Amz-Expires", "3600");
+
+		for (const proofReq of body.proofRequests) {
+			// for every request for proof, we ensure that the image is within our spec
+			// we already know that the image filetypes are image/jpeg or image/png
+			// and the size of each image is under 8MB
+			// for every new proof, we create a URL
+			const proofId = generateId();
+
+			baseR2Url.pathname = `/${proofId}.png`;
+			// baseR2Url.searchParams.set("Content-Length", proofReq.filesize);
+			const signer = new AwsV4Signer({
+				accessKeyId: env.R2_ACCESS_KEY_ID,
+				secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+				url: baseR2Url.toString(),
+				method: "PUT",
+				// sign the query instead of auth header, we aren't passing them the header
+				signQuery: true,
+				headers: {
+					"Content-Length": proofReq.filesize,
+					"Content-Type": proofReq.filetype,
+				},
+				// sign even the content length and type headers
+				allHeaders: true,
+			});
+
 			// create a URL to upload the files to with the base being set to whatever made the request here
-			const url = await createUploadUrl(reportId, proofId, req.url, env);
-			reportProofUrls.push(url);
+			const data = await signer.sign();
+
+			reportProofUrls.push(data.url.toString());
 		}
 
 		// now we insert everything into the database
-		await env.kysely
-			.insertInto("Reports")
+		await env.DB.insertInto("Reports")
 			.values({
 				id: reportId,
 				playername: body.playername,
@@ -151,15 +189,6 @@ ReportsRouter.put<
 				createdBy: body.createdBy,
 			})
 			.execute();
-		await env.kysely
-			.insertInto("ReportCategory")
-			.values(
-				body.categoryIds.map((categoryId) => ({
-					reportId: reportId,
-					categoryId,
-				})),
-			)
-			.execute();
 
 		return {
 			id: reportId,
@@ -168,52 +197,12 @@ ReportsRouter.put<
 	},
 );
 
-// upload report proof
-ReportsRouter.put<RequestType, CF>(
-	"/:reportId/proof/:proofId",
-	async (req, env) => {
-		const isValidRequest = await verifyUploadUrl(req, env);
-		if (!isValidRequest)
-			return error(
-				400,
-				"The request is not authenticated properly or is expired",
-			);
-
-		const reportId = req.params.reportId;
-		const proofId = req.params.proofId;
-		// save the image into R2
-		await env.R2.put(proofId, req.body);
-		// save the info about the image into the database
-		await env.kysely
-			.insertInto("ReportProof")
-			.values({
-				reportId,
-				proofId,
-			})
-			.execute();
-
-		return "ok";
-	},
-);
-
-ReportsRouter.get<RequestType, CF>(
-	"/:reportId/proof/:proofId",
-	async (req, env) => {
-		const proofId = req.params.proofId;
-
-		const img = await env.R2.get(proofId);
-		if (!img) return error(404, "Proof not found");
-		return img.body;
-	},
-);
-
 ReportsRouter.delete<AuthorizedRequest<RequestType>, CF>(
 	"/:id",
 	communityAuthorize,
 	async (req, env) => {
 		const id = req.params.id;
-		const report = await env.kysely
-			.selectFrom("Reports")
+		const report = await env.DB.selectFrom("Reports")
 			.select("communityId")
 			.where("id", "=", id)
 			.executeTakeFirst();
@@ -221,8 +210,7 @@ ReportsRouter.delete<AuthorizedRequest<RequestType>, CF>(
 		if (report.communityId !== req.communityId)
 			return error(403, "You can't delete this report.");
 		const revokedAt = new Date();
-		await env.kysely
-			.updateTable("Reports")
+		await env.DB.updateTable("Reports")
 			.where("id", "=", id)
 			.set({
 				revokedAt: revokedAt,

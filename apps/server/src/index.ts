@@ -1,4 +1,4 @@
-import { Kysely, ParseJSONResultsPlugin } from "kysely";
+import { Kysely } from "kysely";
 import router from "./router";
 import type { DB } from "./db-types";
 import { D1Dialect } from "kysely-d1";
@@ -10,7 +10,7 @@ export default {
 	fetch(request: Request, env: Env, ctx: ExecutionContext) {
 		const customEnv: CustomEnv = {
 			...env,
-			kysely: new Kysely<DB>({
+			DB: new Kysely<DB>({
 				dialect: new D1Dialect({ database: env.DB }),
 				plugins: [new SerializePlugin()],
 			}),

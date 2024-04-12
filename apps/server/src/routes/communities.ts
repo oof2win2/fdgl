@@ -10,8 +10,7 @@ communitiesRouter.get<RequestType, CF>("/", async (_req, env) => {
 	const cached = await env.KV.get<Communities[]>("communities");
 	if (cached) return cached;
 
-	const communities = await env.kysely
-		.selectFrom("Communities")
+	const communities = await env.DB.selectFrom("Communities")
 		.selectAll()
 		.execute();
 
@@ -32,8 +31,7 @@ communitiesRouter.get<RequestType, CF>("/:id", async (req, env) => {
 	const found = cached ? cached.find((community) => community.id === id) : null;
 	if (found) return found;
 
-	const category = await env.kysely
-		.selectFrom("Communities")
+	const category = await env.DB.selectFrom("Communities")
 		.selectAll()
 		.where("id", "=", id)
 		.executeTakeFirst();

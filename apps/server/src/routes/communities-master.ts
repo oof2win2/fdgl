@@ -20,8 +20,7 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 	async (req, env) => {
 		const communityId = generateId();
 		// TODO: validation that contact is a discord user
-		await env.kysely
-			.insertInto("Communities")
+		await env.DB.insertInto("Communities")
 			.values({
 				id: communityId,
 				contact: req.jsonParsedBody.contact,
@@ -39,8 +38,7 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 			},
 			env.JWT_SECRET,
 		);
-		await env.kysely
-			.insertInto("Authorization")
+		await env.DB.insertInto("Authorization")
 			.values({
 				id: apikeyId,
 				communityId,
@@ -59,17 +57,13 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 // delete community
 masterCommunitiesRouter.delete<RequestType, CF>("/:id", async (req, env) => {
 	const id = req.params.id;
-	const community = await env.kysely
-		.selectFrom("Communities")
+	const community = await env.DB.selectFrom("Communities")
 		.selectAll()
 		.where("id", "=", id)
 		.executeTakeFirst();
 	if (!community) return error(404, { message: "Community not found" });
-	await env.kysely.deleteFrom("Communities").where("id", "=", id).execute();
-	await env.kysely
-		.deleteFrom("Reports")
-		.where("communityId", "=", id)
-		.execute();
+	await env.DB.deleteFrom("Communities").where("id", "=", id).execute();
+	await env.DB.deleteFrom("Reports").where("communityId", "=", id).execute();
 
 	// purge the communities from cache
 	await env.KV.delete("communities");

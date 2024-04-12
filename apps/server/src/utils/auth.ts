@@ -31,8 +31,7 @@ export async function communityAuthorize(
 	// the JWT is invalid so we ignore it
 	if (Date.now() > expiresAt)
 		return error(401, { message: "The JWT is expired" });
-	const auth = await env.kysely
-		.selectFrom("Authorization")
+	const auth = await env.DB.selectFrom("Authorization")
 		.selectAll()
 		.where("id", "=", jwtId)
 		.executeTakeFirst();

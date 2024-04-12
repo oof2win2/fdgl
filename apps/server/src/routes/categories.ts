@@ -10,8 +10,7 @@ categoriesRouter.get("/", async (_req, env) => {
 	const cached = await env.KV.get<Categories[]>("categories");
 	if (cached) return cached;
 
-	const categories = await env.kysely
-		.selectFrom("Categories")
+	const categories = await env.DB.selectFrom("Categories")
 		.selectAll()
 		.execute();
 
@@ -29,8 +28,7 @@ categoriesRouter.get("/:id", async (req, env) => {
 	const found = cached ? cached.find((category) => category.id === id) : null;
 	if (found) return found;
 
-	const category = await env.kysely
-		.selectFrom("Categories")
+	const category = await env.DB.selectFrom("Categories")
 		.selectAll()
 		.where("id", "=", id)
 		.executeTakeFirst();

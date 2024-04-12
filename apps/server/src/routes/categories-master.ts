@@ -17,8 +17,7 @@ masterCategoriesRouter.put<JSONParsedBody<typeof createCategorySchema>, CF>(
 	getJSONBody(createCategorySchema),
 	async (req, env) => {
 		const id = generateId();
-		await env.kysely
-			.insertInto("Categories")
+		await env.DB.insertInto("Categories")
 			.values({
 				id,
 				name: req.jsonParsedBody.name,
@@ -37,13 +36,12 @@ masterCategoriesRouter.put<JSONParsedBody<typeof createCategorySchema>, CF>(
 // delete category
 masterCategoriesRouter.delete<RequestType, CF>("/:id", async (req, env) => {
 	const id = req.params.id;
-	const category = await env.kysely
-		.selectFrom("Categories")
+	const category = await env.DB.selectFrom("Categories")
 		.selectAll()
 		.where("id", "=", id)
 		.executeTakeFirst();
 	if (!category) return error(404, { message: "Category not found" });
-	await env.kysely.deleteFrom("Categories").where("id", "=", id).execute();
+	await env.DB.deleteFrom("Categories").where("id", "=", id).execute();
 
 	// purge the categories from cache
 	await env.KV.delete("categories");
@@ -63,14 +61,12 @@ masterCategoriesRouter.post<JSONParsedBody<typeof updateCategorySchema>, CF>(
 	getJSONBody(updateCategorySchema),
 	async (req, env) => {
 		const id = req.params.id;
-		const category = await env.kysely
-			.selectFrom("Categories")
+		const category = await env.DB.selectFrom("Categories")
 			.selectAll()
 			.where("id", "=", id)
 			.executeTakeFirst();
 		if (!category) return error(404, { message: "Category not found" });
-		await env.kysely
-			.updateTable("Categories")
+		await env.DB.updateTable("Categories")
 			.set({
 				name: req.jsonParsedBody.name,
 				description: req.jsonParsedBody.description,
@@ -93,21 +89,19 @@ masterCategoriesRouter.post<RequestType, CF>("/merge", async (req, env) => {
 	if (!source) return error(400, { message: "Missing source" });
 	if (!dest) return error(400, { message: "Missing destination" });
 
-	const sourceCategory = await env.kysely
-		.selectFrom("Categories")
+	const sourceCategory = await env.DB.selectFrom("Categories")
 		.select("id")
 		.where("id", "=", source)
 		.executeTakeFirst();
 	if (!sourceCategory)
 		return error(400, { message: "The source category does not exist" });
-	const destCategory = await env.kysely
-		.selectFrom("Categories")
+	const destCategory = await env.DB.selectFrom("Categories")
 		.select("id")
 		.where("id", "=", source)
 		.executeTakeFirst();
 	if (!destCategory)
 		return error(400, { message: "The destination category does not exist" });
-	await env.kysely.deleteFrom("Categories").where("id", "=", source).execute();
+	await env.DB.deleteFrom("Categories").where("id", "=", source).execute();
 
 	// purge the categories from cache
 	await env.KV.delete("categories");
