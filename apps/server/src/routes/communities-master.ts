@@ -44,9 +44,13 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 			.values({
 				id: apikeyId,
 				communityId,
-				expiresAt: expiry.toISOString(),
+				expiresAt: expiry,
 			})
 			.execute();
+
+		// purge the communities from cache
+		await env.KV.delete("communities");
+
 		return { id: communityId, apikey };
 	},
 );
@@ -66,6 +70,10 @@ masterCommunitiesRouter.delete<RequestType, CF>("/:id", async (req, env) => {
 		.deleteFrom("Reports")
 		.where("communityId", "=", id)
 		.execute();
+
+	// purge the communities from cache
+	await env.KV.delete("communities");
+
 	// TODO: do something with all reports on delete
 	return { status: "ok" };
 });

@@ -9,6 +9,7 @@ export type CustomEnv = {
 	JWT_SECRET: string;
 	R2_SIGNING_SECRET: string;
 	R2: R2Bucket;
+	KV: KVNamespace;
 };
 // create a convenient duple
 export type CFEnv = [env: Env, context: ExecutionContext];

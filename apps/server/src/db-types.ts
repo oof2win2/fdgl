@@ -1,11 +1,9 @@
-import type { ColumnType, Generated } from "kysely";
-
-export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+import type { Generated } from "kysely";
 
 export type Authorization = {
 	id: string;
 	communityId: string;
-	expiresAt: string;
+	expiresAt: Date;
 };
 export type Categories = {
 	id: string;
@@ -25,7 +23,7 @@ export type ReportCategory = {
 export type ReportProof = {
 	proofId: string;
 	reportId: string;
-	uploadExpiresAt: string | null;
+	uploadExpiresAt: Date | null;
 };
 export type Reports = {
 	id: string;
@@ -33,9 +31,9 @@ export type Reports = {
 	description: string | null;
 	communityId: string;
 	createdBy: string;
-	revokedAt: string | null;
-	createdAt: string;
-	updatedAt: string;
+	revokedAt: Date | null;
+	createdAt: Date;
+	updatedAt: Date;
 };
 export type DB = {
 	Authorization: Authorization;

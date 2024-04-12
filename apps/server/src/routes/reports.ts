@@ -53,14 +53,14 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 	let query = env.kysely
 		.selectFrom("Reports")
 		.selectAll("Reports")
-		.select((qb) => [
+		.select((qb) =>
 			jsonArrayFrom(
 				qb
 					.selectFrom("ReportCategory")
 					.select("ReportCategory.categoryId")
 					.whereRef("ReportCategory.reportId", "=", "Reports.id"),
 			).as("categories"),
-		]);
+		);
 	if (params.communityIds.length)
 		query = query.where("Reports.communityId", "in", params.communityIds);
 	// this mess is basically selecting
@@ -76,23 +76,11 @@ ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
 			),
 		);
 	if (params.createdSince)
-		query = query.where(
-			"Reports.createdAt",
-			"<",
-			params.createdSince.toISOString(),
-		);
+		query = query.where("Reports.createdAt", "<", params.createdSince);
 	if (params.revokedSince)
-		query = query.where(
-			"Reports.revokedAt",
-			"<",
-			params.revokedSince.toISOString(),
-		);
+		query = query.where("Reports.revokedAt", "<", params.revokedSince);
 	if (params.updatedSince)
-		query = query.where(
-			"Reports.updatedAt",
-			"<",
-			params.updatedSince.toISOString(),
-		);
+		query = query.where("Reports.updatedAt", "<", params.updatedSince);
 
 	const results = await query.execute();
 	const fixedCategories = results.map((report) => ({
@@ -121,6 +109,7 @@ ReportsRouter.put<
 	async (req, env) => {
 		const reportId = generateId();
 		const body = req.jsonParsedBody;
+		// we don't fetch categories from cache here because we need to be 100% sure that they exist
 		const categories = (
 			await env.kysely
 				.selectFrom("Categories")
@@ -156,8 +145,8 @@ ReportsRouter.put<
 				id: reportId,
 				playername: body.playername,
 				communityId: req.communityId,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
+				createdAt: new Date(),
+				updatedAt: new Date(),
 				description: body.description,
 				createdBy: body.createdBy,
 			})
@@ -231,7 +220,7 @@ ReportsRouter.delete<AuthorizedRequest<RequestType>, CF>(
 		if (!report) return error(404, "Report not found.");
 		if (report.communityId !== req.communityId)
 			return error(403, "You can't delete this report.");
-		const revokedAt = new Date().toISOString();
+		const revokedAt = new Date();
 		await env.kysely
 			.updateTable("Reports")
 			.where("id", "=", id)

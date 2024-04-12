@@ -25,6 +25,10 @@ masterCategoriesRouter.put<JSONParsedBody<typeof createCategorySchema>, CF>(
 				description: req.jsonParsedBody.description,
 			})
 			.execute();
+
+		// purge the categories from cache
+		await env.KV.delete("categories");
+
 		return { id };
 	},
 );
@@ -40,6 +44,10 @@ masterCategoriesRouter.delete<RequestType, CF>("/:id", async (req, env) => {
 		.executeTakeFirst();
 	if (!category) return error(404, { message: "Category not found" });
 	await env.kysely.deleteFrom("Categories").where("id", "=", id).execute();
+
+	// purge the categories from cache
+	await env.KV.delete("categories");
+
 	// TODO: do something with all reports on delete
 	return { status: "ok" };
 });
@@ -69,31 +77,41 @@ masterCategoriesRouter.post<JSONParsedBody<typeof updateCategorySchema>, CF>(
 			})
 			.where("id", "=", id)
 			.execute();
+
+		// purge the categories from cache
+		await env.KV.delete("categories");
+
 		return { status: "ok" };
 	},
 );
 
-masterCategoriesRouter.post<RequestType, CF>("/merge", async (req, ctx) => {
+masterCategoriesRouter.post<RequestType, CF>("/merge", async (req, env) => {
 	const params = new URL(req.url).searchParams;
 	const source = params.get("source");
 	const dest = params.get("dest");
+
 	if (!source) return error(400, { message: "Missing source" });
 	if (!dest) return error(400, { message: "Missing destination" });
-	const sourceCategory = await ctx.kysely
+
+	const sourceCategory = await env.kysely
 		.selectFrom("Categories")
 		.select("id")
 		.where("id", "=", source)
 		.executeTakeFirst();
 	if (!sourceCategory)
 		return error(400, { message: "The source category does not exist" });
-	const destCategory = await ctx.kysely
+	const destCategory = await env.kysely
 		.selectFrom("Categories")
 		.select("id")
 		.where("id", "=", source)
 		.executeTakeFirst();
 	if (!destCategory)
 		return error(400, { message: "The destination category does not exist" });
-	await ctx.kysely.deleteFrom("Categories").where("id", "=", source).execute();
+	await env.kysely.deleteFrom("Categories").where("id", "=", source).execute();
+
+	// purge the categories from cache
+	await env.KV.delete("categories");
+
 	// TODO: do something with the reports
 	return { status: "ok" };
 });

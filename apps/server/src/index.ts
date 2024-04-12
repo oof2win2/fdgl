@@ -4,6 +4,7 @@ import type { DB } from "./db-types";
 import { D1Dialect } from "kysely-d1";
 import type { CustomEnv } from "./types";
 import { error, json } from "itty-router";
+import { SerializePlugin } from "kysely-plugin-serialize";
 
 export default {
 	fetch(request: Request, env: Env, ctx: ExecutionContext) {
@@ -11,7 +12,7 @@ export default {
 			...env,
 			kysely: new Kysely<DB>({
 				dialect: new D1Dialect({ database: env.DB }),
-				plugins: [new ParseJSONResultsPlugin()],
+				plugins: [new SerializePlugin()],
 			}),
 		};
 		return router
