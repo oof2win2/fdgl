@@ -1,4 +1,4 @@
-import { Router, error, withParams } from "itty-router";
+import { AutoRouter, error } from "itty-router";
 import { jsonArrayFrom } from "kysely/helpers/sqlite";
 import * as v from "valibot";
 import type { CF, RequestType } from "../types";
@@ -7,11 +7,11 @@ import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 import { generateId } from "../utils/nanoid";
 import { AwsV4Signer } from "aws4fetch";
 
-const ReportsRouter = Router({ base: "/reports" });
+const ReportsRouter = AutoRouter<RequestType, CF>({ base: "/reports" });
 
 // GET /:id
 // get a report by ID
-ReportsRouter.get<RequestType, CF>("/:id", async (req, env, _ctx) => {
+ReportsRouter.get("/:id", async (req, env) => {
 	const id = req.params.id;
 	if (!id) return error(400, "No ID provided.");
 	const report = await env.DB.selectFrom("Reports")
@@ -37,7 +37,7 @@ const getReportsFiltered = v.object({
 	revokedSince: v.nullable(DateSchema),
 	updatedSince: v.nullable(DateSchema),
 });
-ReportsRouter.get<RequestType, CF>("/", withParams, async (req, env) => {
+ReportsRouter.get("/", async (req, env) => {
 	const searchParams = new URL(req.url).searchParams;
 	const params = v.parse(getReportsFiltered, {
 		categoryIds: searchParams.getAll("categoryIds"),

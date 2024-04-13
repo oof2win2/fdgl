@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "aws4fetch": "^1.0.18",
-    "itty-router": "^4.0.27",
+    "itty-router": "5",
     "itty-time": "^0.2.2",
     "kysely": "^0.27.3",
     "kysely-d1": "^0.3.0",

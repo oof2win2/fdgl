@@ -1,11 +1,13 @@
-import { Router, error } from "itty-router";
+import { AutoRouter, error } from "itty-router";
 import { object, string } from "valibot";
 import type { CF, RequestType } from "../types";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 import { datePlus } from "itty-time";
 import { generateId } from "../utils/nanoid";
 
-const masterCommunitiesRouter = Router({ base: "/master/communities" });
+const masterCommunitiesRouter = AutoRouter<RequestType, CF>({
+	base: "/master/communities",
+});
 
 // PUT /communities
 // create community
@@ -47,7 +49,7 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 
 // DELETE /communities/:id
 // delete community
-masterCommunitiesRouter.delete<RequestType, CF>("/:id", async (req, env) => {
+masterCommunitiesRouter.delete("/:id", async (req, env) => {
 	const id = req.params.id;
 	const community = await env.DB.selectFrom("Communities")
 		.selectAll()

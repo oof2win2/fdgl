@@ -1,10 +1,12 @@
-import { Router, error } from "itty-router";
+import { AutoRouter, error } from "itty-router";
 import { object, string } from "valibot";
 import type { CF, RequestType } from "../types";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 import { generateId } from "../utils/nanoid";
 
-const masterCategoriesRouter = Router({ base: "/master/categories" });
+const masterCategoriesRouter = AutoRouter<RequestType, CF>({
+	base: "/master/categories",
+});
 
 // PUT /categories
 // create category
@@ -34,7 +36,7 @@ masterCategoriesRouter.put<JSONParsedBody<typeof createCategorySchema>, CF>(
 
 // DELETE /categories/:id
 // delete category
-masterCategoriesRouter.delete<RequestType, CF>("/:id", async (req, env) => {
+masterCategoriesRouter.delete("/:id", async (req, env) => {
 	const id = req.params.id;
 	const category = await env.DB.selectFrom("Categories")
 		.selectAll()

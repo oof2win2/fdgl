@@ -1,8 +1,8 @@
-import { Router } from "itty-router";
+import { AutoRouter } from "itty-router";
 import type { CF, RequestType } from "../types";
 import type { Categories } from "../db-types";
 
-const categoriesRouter = Router<RequestType, CF>({ base: "/categories" });
+const categoriesRouter = AutoRouter<RequestType, CF>({ base: "/categories" });
 
 // GET /
 // get all categories

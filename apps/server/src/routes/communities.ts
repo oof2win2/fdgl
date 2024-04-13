@@ -1,12 +1,12 @@
-import { Router } from "itty-router";
+import { AutoRouter } from "itty-router";
 import type { CF, RequestType } from "../types";
 import type { Communities } from "../db-types";
 
-const communitiesRouter = Router({ base: "/communities" });
+const communitiesRouter = AutoRouter<RequestType, CF>({ base: "/communities" });
 
 // GET /
 // get all communities
-communitiesRouter.get<RequestType, CF>("/", async (_req, env) => {
+communitiesRouter.get("/", async (_req, env) => {
 	const cached = await env.KV.get<Communities[]>("communities");
 	if (cached) return cached;
 
@@ -21,7 +21,7 @@ communitiesRouter.get<RequestType, CF>("/", async (_req, env) => {
 
 // GET /:id
 // get a community by it's ID
-communitiesRouter.get<RequestType, CF>("/:id", async (req, env) => {
+communitiesRouter.get("/:id", async (req, env) => {
 	const id = req.params.id;
 
 	const cached = await env.KV.get<Communities[]>("communities", {
