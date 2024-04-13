@@ -1,6 +1,6 @@
 import type { IRequestStrict } from "itty-router";
 import type { Kysely } from "kysely";
-import type { DB } from "./db-types";
+import type { DB, ReportProof, Reports } from "./db-types";
 
 // the env that we pass to route handlers
 export type CustomEnv = Omit<Env, "DB"> & {
@@ -13,4 +13,9 @@ export type CF = [env: CustomEnv, context: ExecutionContext];
 export type RequestType = IRequestStrict & {};
 export type JSONParsedRequestType<T> = RequestType & {
 	jsonParsedBody: T;
+};
+
+export type ReportWithProofAndCategories = Reports & {
+	proof: Omit<ReportProof, "reportId">[];
+	categories: { categoryId: string }[];
 };

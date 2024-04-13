@@ -1,12 +1,12 @@
 import { AutoRouter, error } from "itty-router";
 import { jsonArrayFrom } from "kysely/helpers/sqlite";
 import * as v from "valibot";
-import type { CF, RequestType } from "../types";
+import type { CF, ReportWithProofAndCategories, RequestType } from "../types";
 import { type AuthorizedRequest, communityAuthorize } from "../utils/auth";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 import { generateId } from "../utils/nanoid";
 import { AwsV4Signer } from "aws4fetch";
-import type { ReportProof, Reports } from "../db-types";
+import type { ReportProof } from "../db-types";
 
 const ReportsRouter = AutoRouter<RequestType, CF>({ base: "/reports" });
 
@@ -26,13 +26,7 @@ const reportProofToUrls = (
 	);
 };
 
-const fixReport = (
-	report: Reports & {
-		proof: Omit<ReportProof, "reportId">[];
-		categories: { categoryId: string }[];
-	},
-	baseurl: string,
-) => {
+const fixReport = (report: ReportWithProofAndCategories, baseurl: string) => {
 	return {
 		...report,
 		proof: reportProofToUrls(report.proof, baseurl),
