@@ -10,7 +10,6 @@
     "itty-router": "5",
     "itty-time": "^0.2.2",
     "kysely": "^0.27.3",
-    "kysely-d1": "^0.3.0",
     "kysely-plugin-serialize": "^0.6.0",
     "nanoid": "^5.0.5",
     "valibot": "^0.28.1"

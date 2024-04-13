@@ -8,7 +8,7 @@ import { MasterAuthenticate } from "./utils/auth";
 import communitiesRouter from "./routes/communities";
 import { Kysely } from "kysely";
 import { SerializePlugin } from "kysely-plugin-serialize";
-import { D1Dialect } from "kysely-d1";
+import { D1Dialect } from "./kysely-d1";
 import type { DB } from "./db-types";
 
 // the cloudflare Env has DB set to a D1Database, which isn't kysely
