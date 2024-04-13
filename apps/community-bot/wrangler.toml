@@ -1,0 +1,12 @@
+# Top-level configuration
+name = "fdgl-communitybot"
+main = "src/index.ts"
+compatibility_date = "2024-04-13"
+
+[dev]
+port = 3001
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "fdgl-botdb"
+database_id = "4e504f12-a59e-4e67-9b14-326d648219a0"
