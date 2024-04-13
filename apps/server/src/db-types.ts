@@ -23,7 +23,7 @@ export type ReportCategory = {
 export type ReportProof = {
 	proofId: string;
 	reportId: string;
-	uploadExpiresAt: Date | null;
+	filetype: "image/jpeg" | "image/png";
 };
 export type Reports = {
 	id: string;

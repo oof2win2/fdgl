@@ -6,8 +6,39 @@ import { type AuthorizedRequest, communityAuthorize } from "../utils/auth";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
 import { generateId } from "../utils/nanoid";
 import { AwsV4Signer } from "aws4fetch";
+import type { ReportProof, Reports } from "../db-types";
 
 const ReportsRouter = AutoRouter<RequestType, CF>({ base: "/reports" });
+
+const getExtensionForFiletype = (type: ReportProof["filetype"]): string => {
+	if (type === "image/jpeg") return ".jpeg";
+	if (type === "image/png") return ".png";
+	throw new Error("unsupported filetype");
+};
+
+const reportProofToUrls = (
+	proof: Omit<ReportProof, "reportId">[],
+	baseurl: string,
+): string[] => {
+	return proof.map(
+		(item) =>
+			`${baseurl}/${item.proofId}.${getExtensionForFiletype(item.filetype)}`,
+	);
+};
+
+const fixReport = (
+	report: Reports & {
+		proof: Omit<ReportProof, "reportId">[];
+		categories: { categoryId: string }[];
+	},
+	baseurl: string,
+) => {
+	return {
+		...report,
+		proof: reportProofToUrls(report.proof, baseurl),
+		categories: report.categories.map((c) => c.categoryId),
+	};
+};
 
 // GET /:id
 // get a report by ID
@@ -17,8 +48,22 @@ ReportsRouter.get("/:id", async (req, env) => {
 	const report = await env.DB.selectFrom("Reports")
 		.selectAll()
 		.where("id", "=", id)
+		.select((qb) => [
+			jsonArrayFrom(
+				qb
+					.selectFrom("ReportCategory")
+					.select("ReportCategory.categoryId")
+					.where("ReportCategory.reportId", "=", id),
+			).as("categories"),
+			jsonArrayFrom(
+				qb
+					.selectFrom("ReportProof")
+					.select(["ReportProof.proofId", "ReportProof.filetype"])
+					.where("ReportProof.reportId", "=", id),
+			).as("proof"),
+		])
 		.executeTakeFirst();
-	return report ?? null;
+	return report ? fixReport(report, env.R2_BUCKET_PUBLIC_BASEURL) : null;
 });
 
 const DateSchema = v.transform(
@@ -51,14 +96,20 @@ ReportsRouter.get("/", async (req, env) => {
 	// basic fetching of the reports with their categories
 	let query = env.DB.selectFrom("Reports")
 		.selectAll("Reports")
-		.select((qb) =>
+		.select((qb) => [
 			jsonArrayFrom(
 				qb
 					.selectFrom("ReportCategory")
 					.select("ReportCategory.categoryId")
 					.whereRef("ReportCategory.reportId", "=", "Reports.id"),
 			).as("categories"),
-		);
+			jsonArrayFrom(
+				qb
+					.selectFrom("ReportProof")
+					.select(["ReportProof.proofId", "ReportProof.filetype"])
+					.whereRef("ReportProof.reportId", "=", "Reports.id"),
+			).as("proof"),
+		]);
 	if (params.communityIds.length)
 		query = query.where("Reports.communityId", "in", params.communityIds);
 	// this mess is basically selecting
@@ -81,10 +132,9 @@ ReportsRouter.get("/", async (req, env) => {
 		query = query.where("Reports.updatedAt", "<", params.updatedSince);
 
 	const results = await query.execute();
-	const fixedCategories = results.map((report) => ({
-		...report,
-		categories: report.categories.map((c) => c.categoryId),
-	}));
+	const fixedCategories = results.map((report) =>
+		fixReport(report, env.R2_BUCKET_PUBLIC_BASEURL),
+	);
 	return fixedCategories;
 });
 
@@ -154,7 +204,9 @@ ReportsRouter.put<
 			// for every new proof, we create a URL
 			const proofId = generateId();
 
-			baseR2Url.pathname = `/${proofId}.png`;
+			baseR2Url.pathname = `/${proofId}.${getExtensionForFiletype(
+				proofReq.filetype,
+			)}`;
 			// baseR2Url.searchParams.set("Content-Length", proofReq.filesize);
 			const signer = new AwsV4Signer({
 				accessKeyId: env.R2_ACCESS_KEY_ID,
