@@ -9,10 +9,6 @@ port = 3000
 [vars]
 R2_BUCKET_NAME = "fdgl-proofs"
 
-kv_namespaces = [
-	{ binding = "KV", id = "256da8022911419ca86b0a01589e6b79" }
-]
-
 [[d1_databases]]
 binding = "DB" # i.e. available in your Worker on env.DB
 database_name = "fdgl-maindb"
@@ -21,3 +17,7 @@ database_id = "fb5ec937-8f92-4532-a8c4-9d2d0abc9675"
 [[r2_buckets]]
 binding = "R2"
 bucket_name = "fdgl-proofs"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "256da8022911419ca86b0a01589e6b79"
