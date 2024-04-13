@@ -2,7 +2,6 @@ import { Router, error } from "itty-router";
 import { object, string } from "valibot";
 import type { CF, RequestType } from "../types";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
-import jwt from "@tsndr/cloudflare-worker-jwt";
 import { datePlus } from "itty-time";
 import { generateId } from "../utils/nanoid";
 
@@ -30,17 +29,10 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 
 		const expiry = datePlus("365 days");
 		const apikeyId = generateId();
-		const apikey = await jwt.sign(
-			{
-				jti: apikeyId,
-				exp: Math.floor(Date.now() / 1000) + 86400,
-				sub: communityId,
-			},
-			env.JWT_SECRET,
-		);
+		const apikey = generateId(32);
 		await env.DB.insertInto("Authorization")
 			.values({
-				id: apikeyId,
+				apikey: apikeyId,
 				communityId,
 				expiresAt: expiry,
 			})
