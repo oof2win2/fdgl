@@ -1,4 +1,3 @@
-import jwt from "@tsndr/cloudflare-worker-jwt";
 import { error } from "itty-router";
 import type { CustomEnv, RequestType } from "../types";
 
@@ -17,24 +16,22 @@ export async function communityAuthorize(
 ) {
 	const authValue = req.headers.get("x-fdgl-auth");
 	if (!authValue) return error(401);
-	const isValid = await jwt.verify(authValue, env.JWT_SECRET);
-	if (!isValid) return error(401);
-	const decoded = jwt.decode(authValue);
-	const jwtId = decoded.payload?.jti;
-	const communityId = decoded.payload?.sub;
-	const expiry = decoded.payload?.exp;
-	if (!jwtId || !communityId || !expiry)
-		return error(500, {
-			message: "An error occured with an invalid JWT token",
-		});
-	const expiresAt = expiry * 1000;
-	// the JWT is invalid so we ignore it
-	if (Date.now() > expiresAt)
-		return error(401, { message: "The JWT is expired" });
-	const auth = await env.DB.selectFrom("Authorization")
+
+	const apikey = await env.DB.selectFrom("Authorization")
 		.selectAll()
-		.where("id", "=", jwtId)
+		.where("apikey", "=", authValue)
 		.executeTakeFirst();
-	if (!auth) return error(401, { message: "The JWT is expired" });
-	req.communityId = communityId;
+
+	if (!apikey) return error(401);
+
+	// check if the apikey is expired
+	// if so, first delete the key from the db and then return a 401
+	if (apikey.expiresAt < new Date()) {
+		await env.DB.deleteFrom("Authorization")
+			.where("apikey", "=", authValue)
+			.execute();
+		return error(401);
+	}
+
+	req.communityId = apikey.communityId;
 }

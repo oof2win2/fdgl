@@ -6,7 +6,6 @@
     "dev": "wrangler dev"
   },
   "dependencies": {
-    "@tsndr/cloudflare-worker-jwt": "2.4",
     "aws4fetch": "^1.0.18",
     "itty-router": "^4.0.27",
     "itty-time": "^0.2.2",

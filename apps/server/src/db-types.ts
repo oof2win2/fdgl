@@ -1,7 +1,7 @@
 import type { Generated } from "kysely";
 
 export type Authorization = {
-	id: string;
+	apikey: string;
 	communityId: string;
 	expiresAt: Date;
 };

@@ -30,7 +30,7 @@ A todolist outline for the project
 - [ ] add a notif type for merged communities + categories
 - [ ] add a notif for deleted communities + categories
 - [ ] backend: add caching of notifs for the past ~30m with a DO
-- [ ] backend: implement auth properly using session tokens or something
+- [X] backend: implement auth properly using session tokens or something
 - [ ] backend: add fetching of report proof with reports
 - [ ] build the clientside handler
 - [ ] build the community discord bot
