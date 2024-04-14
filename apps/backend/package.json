@@ -1,26 +1,26 @@
 {
-  "name": "fdgl-server",
-  "module": "src/index.ts",
-  "type": "module",
-  "scripts": {
-    "dev": "wrangler dev"
-  },
-  "dependencies": {
-    "aws4fetch": "^1.0.18",
-    "itty-router": "5",
-    "itty-time": "^0.2.2",
-    "kysely-plugin-serialize": "^0.6.0",
-    "nanoid": "^5.0.5",
-    "valibot": "^0.28.1"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240208.0",
-    "@types/bun": "^1.0.5",
-    "kysely-migrate": "^0.0.16",
-    "prisma": "^5.10.2",
-    "prisma-kysely": "^1.8.0"
-  }
+	"name": "@fdgl/backend",
+	"module": "src/index.ts",
+	"type": "module",
+	"scripts": {
+		"dev": "wrangler dev"
+	},
+	"dependencies": {
+		"aws4fetch": "^1.0.18",
+		"itty-router": "5",
+		"itty-time": "^0.2.2",
+		"kysely-plugin-serialize": "^0.6.0",
+		"nanoid": "^5.0.5",
+		"valibot": "^0.28.1"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20240208.0",
+		"@types/bun": "^1.0.5",
+		"kysely-migrate": "^0.0.16",
+		"prisma": "^5.10.2",
+		"prisma-kysely": "^1.8.0"
+	}
 }
