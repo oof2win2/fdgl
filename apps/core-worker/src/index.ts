@@ -8,6 +8,12 @@ import { Reports } from "./endpoints/reports";
 import { Categories } from "./endpoints/categories";
 import { Communities } from "./endpoints/communities";
 
+type PickMatching<T, V> = {
+	[K in keyof T as T[K] extends V ? K : never]: T[K];
+};
+// biome-ignore lint/complexity/noBannedTypes: it's okay here as it is only a picker
+type ExtractMethods<T> = PickMatching<T, Function>;
+
 export class FDGLService extends WorkerEntrypoint<Env> {
 	#categories: Categories;
 	#communities: Communities;
@@ -28,13 +34,35 @@ export class FDGLService extends WorkerEntrypoint<Env> {
 	}
 
 	get categories() {
+		// biome-ignore format: its nicer in one line
 		return {
 			getCategory: this.#categories.getCategory.bind(this.#categories),
-			getAllCategories: this.#categories.getAllCategories.bind(
-				this.#categories,
-			),
+			getAllCategories: this.#categories.getAllCategories.bind(this.#categories),
 			health: this.#categories.health.bind(this.#categories),
-		};
+			createCategory: this.#categories.createCategory.bind(this.#categories),
+			mergeCategories: this.#categories.mergeCategories.bind(this.#categories),
+			updateCategory: this.#categories.updateCategory.bind(this.#categories),
+		} satisfies ExtractMethods<Categories>;
+	}
+
+	get communities() {
+		// biome-ignore format: its nicer in one line
+		return {
+			getCommunity: this.#communities.getCommunity.bind(this.#communities),
+			getAllCommunities: this.#communities.getAllCommunities.bind(this.#communities),
+			createCommunity: this.#communities.createCommunity.bind(this.#communities),
+			mergeCommunities: this.#communities.mergeCommunities.bind(this.#communities)
+		} satisfies ExtractMethods<Communities>;
+	}
+
+	get reports() {
+		// biome-ignore format: its nicer in one line
+		return {
+			getReport: this.#reports.getReport.bind(this.#reports),
+			getReports: this.#reports.getReports.bind(this.#reports),
+			createReport: this.#reports.createReport.bind(this.#reports),
+			revokeReport: this.#reports.revokeReport.bind(this.#reports)
+		} satisfies ExtractMethods<Reports>
 	}
 }
 
