@@ -1,5 +1,5 @@
 # Top-level configuration
-name = "fdgl-backend"
+name = "fdgl-core"
 main = "src/index.ts"
 compatibility_date = "2024-04-13"
 

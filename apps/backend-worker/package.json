@@ -1,11 +1,12 @@
 {
 	"name": "@fdgl/backend-worker",
+	"version": "0.0.1",
 	"module": "src/index.ts",
 	"type": "module",
+	"types": "./src/index.ts",
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240405.0",
-		"@types/bun": "latest",
-		"wrangler": "^3.50.0"
+		"@types/bun": "latest"
 	},
 	"peerDependencies": {
 		"typescript": "^5.0.0"

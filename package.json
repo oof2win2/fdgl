@@ -1,10 +1,12 @@
 {
-	"name": "fdgl",
-	"devDependencies": {
-		"@biomejs/biome": "1.5.3"
-	},
-	"workspaces": [
-		"packages/*",
-		"apps/*"
-	]
+  "name": "fdgl",
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3",
+    "@fdgl/backend-worker": "apps/backend-worker",
+    "wrangler": "^3.50.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ]
 }

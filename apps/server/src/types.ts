@@ -1,10 +1,9 @@
 import type { IRequestStrict } from "itty-router";
-import type { Kysely } from "kysely";
-import type { DB, ReportProof, Reports } from "./db-types";
+import type { FDGLService } from "@fdgl/backend-worker";
 
 // the env that we pass to route handlers
-export type CustomEnv = Omit<Env, "DB"> & {
-	DB: Kysely<DB>;
+export type CustomEnv = Omit<Env, "FDGL"> & {
+	FDGL: Service<FDGLService>;
 };
 // create a convenient duple
 export type CFEnv = [env: Env, context: ExecutionContext];
@@ -13,9 +12,4 @@ export type CF = [env: CustomEnv, context: ExecutionContext];
 export type RequestType = IRequestStrict & {};
 export type JSONParsedRequestType<T> = RequestType & {
 	jsonParsedBody: T;
-};
-
-export type ReportWithProofAndCategories = Reports & {
-	proof: Omit<ReportProof, "reportId">[];
-	categories: { categoryId: string }[];
 };

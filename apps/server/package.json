@@ -9,7 +9,6 @@
     "aws4fetch": "^1.0.18",
     "itty-router": "5",
     "itty-time": "^0.2.2",
-    "kysely": "^0.27.3",
     "kysely-plugin-serialize": "^0.6.0",
     "nanoid": "^5.0.5",
     "valibot": "^0.28.1"
@@ -18,11 +17,10 @@
     "typescript": "^5.0.0"
   },
   "devDependencies": {
-    "kysely-migrate": "^0.0.16",
-    "prisma-kysely": "^1.8.0",
     "@cloudflare/workers-types": "^4.20240208.0",
     "@types/bun": "^1.0.5",
+    "kysely-migrate": "^0.0.16",
     "prisma": "^5.10.2",
-    "wrangler": "^3.29.0"
+    "prisma-kysely": "^1.8.0"
   }
 }
