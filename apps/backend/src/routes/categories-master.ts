@@ -2,7 +2,6 @@ import { AutoRouter, error } from "itty-router";
 import { object, string } from "valibot";
 import type { CF, RequestType } from "../types";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
-import { generateId } from "../utils/nanoid";
 
 const masterCategoriesRouter = AutoRouter<RequestType, CF>({
 	base: "/master/categories",
@@ -18,39 +17,14 @@ masterCategoriesRouter.put<JSONParsedBody<typeof createCategorySchema>, CF>(
 	"/",
 	getJSONBody(createCategorySchema),
 	async (req, env) => {
-		const id = generateId();
-		await env.DB.insertInto("Categories")
-			.values({
-				id,
-				name: req.jsonParsedBody.name,
-				description: req.jsonParsedBody.description,
-			})
-			.execute();
-
-		// purge the categories from cache
-		await env.KV.delete("categories");
+		const id = await env.FDGL.categories.createCategory({
+			name: req.jsonParsedBody.name,
+			description: req.jsonParsedBody.description,
+		});
 
 		return { id };
 	},
 );
-
-// DELETE /categories/:id
-// delete category
-masterCategoriesRouter.delete("/:id", async (req, env) => {
-	const id = req.params.id;
-	const category = await env.DB.selectFrom("Categories")
-		.selectAll()
-		.where("id", "=", id)
-		.executeTakeFirst();
-	if (!category) return error(404, { message: "Category not found" });
-	await env.DB.deleteFrom("Categories").where("id", "=", id).execute();
-
-	// purge the categories from cache
-	await env.KV.delete("categories");
-
-	// TODO: do something with all reports on delete
-	return { status: "ok" };
-});
 
 // POST /categories/:id
 // update category (by replacing)
@@ -63,21 +37,15 @@ masterCategoriesRouter.post<JSONParsedBody<typeof updateCategorySchema>, CF>(
 	getJSONBody(updateCategorySchema),
 	async (req, env) => {
 		const id = req.params.id;
-		const category = await env.DB.selectFrom("Categories")
-			.selectAll()
-			.where("id", "=", id)
-			.executeTakeFirst();
-		if (!category) return error(404, { message: "Category not found" });
-		await env.DB.updateTable("Categories")
-			.set({
-				name: req.jsonParsedBody.name,
-				description: req.jsonParsedBody.description,
-			})
-			.where("id", "=", id)
-			.execute();
 
-		// purge the categories from cache
-		await env.KV.delete("categories");
+		const status = await env.FDGL.categories.updateCategory({
+			id,
+			name: req.jsonParsedBody.name,
+			description: req.jsonParsedBody.description,
+		});
+
+		if (status === "notFound")
+			return error(404, { message: "Category not found" });
 
 		return { status: "ok" };
 	},
@@ -91,24 +59,14 @@ masterCategoriesRouter.post<RequestType, CF>("/merge", async (req, env) => {
 	if (!source) return error(400, { message: "Missing source" });
 	if (!dest) return error(400, { message: "Missing destination" });
 
-	const sourceCategory = await env.DB.selectFrom("Categories")
-		.select("id")
-		.where("id", "=", source)
-		.executeTakeFirst();
-	if (!sourceCategory)
-		return error(400, { message: "The source category does not exist" });
-	const destCategory = await env.DB.selectFrom("Categories")
-		.select("id")
-		.where("id", "=", source)
-		.executeTakeFirst();
-	if (!destCategory)
-		return error(400, { message: "The destination category does not exist" });
-	await env.DB.deleteFrom("Categories").where("id", "=", source).execute();
+	const status = await env.FDGL.categories.mergeCategories(source, dest);
 
-	// purge the categories from cache
-	await env.KV.delete("categories");
+	if (status === "sourceNotFound")
+		return error(400, { message: "Invalid source" });
+	if (status === "destNotFound")
+		return error(400, { message: "Invalid destination" });
 
-	// TODO: do something with the reports
+	// TODO: notify of the changes
 	return { status: "ok" };
 });
 

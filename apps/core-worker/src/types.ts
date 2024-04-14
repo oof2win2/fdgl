@@ -6,7 +6,7 @@ export type CustomEnv = {
 	d1_db: D1Database;
 } & Omit<Env, "DB">;
 
-export interface ReportWithProofAndCategories {
+export type ReportWithProofAndCategories = Reports & {
 	proof: Omit<ReportProof, "reportId">[];
 	categories: { categoryId: string }[];
-}
+};

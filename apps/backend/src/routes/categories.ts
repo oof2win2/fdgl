@@ -6,8 +6,7 @@ const categoriesRouter = AutoRouter<RequestType, CF>({ base: "/categories" });
 // GET /
 // get all categories
 categoriesRouter.get("/", async (_req, env) => {
-	console.log("categories");
-	const categories = await env.FDGL.categories.getAllCategories();
+	using categories = await env.FDGL.categories.getAllCategories();
 	return categories;
 });
 
@@ -16,7 +15,7 @@ categoriesRouter.get("/", async (_req, env) => {
 categoriesRouter.get("/:id", async (req, env) => {
 	const id = req.params.id;
 
-	const category = await env.FDGL.categories.getCategory(id);
+	using category = await env.FDGL.categories.getCategory(id);
 
 	return category ?? null;
 });

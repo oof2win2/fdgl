@@ -25,12 +25,11 @@ bun run dev
 
 A todolist outline for the project
 
-- [ ] backend: add processing of notifs from a R2 queue about uploaded files
-- [ ] backend: add merging of communities into one
+- [ ] build core+backend interoperable auth system
+- [ ] core: add processing of notifs from a R2 queue about uploaded files
+- [ ] core: add merging of communities into one
 - [ ] add a notif type for merged communities + categories
 - [ ] add a notif for deleted communities + categories
-- [ ] backend: add caching of notifs for the past ~30m with a DO
-- [X] backend: implement auth properly using session tokens or something
-- [X] backend: add fetching of report proof with reports
+- [ ] core?: add caching of notifs for the past ~30m with a DO
 - [ ] build the clientside handler
 - [ ] build the community discord bot

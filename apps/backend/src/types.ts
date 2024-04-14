@@ -1,5 +1,5 @@
 import type { IRequestStrict } from "itty-router";
-import type { FDGLService } from "@fdgl/backend-worker";
+import type { FDGLService } from "@fdgl/core-worker";
 
 // the env that we pass to route handlers
 export type CustomEnv = Omit<Env, "FDGL"> & {

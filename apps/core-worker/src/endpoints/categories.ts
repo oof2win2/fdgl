@@ -110,5 +110,7 @@ export class Categories extends BaseEndpoint {
 		await this.env.DB.deleteFrom("Categories")
 			.where("id", "=", source)
 			.execute();
+
+		return "ok";
 	}
 }

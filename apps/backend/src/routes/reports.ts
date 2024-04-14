@@ -1,37 +1,17 @@
 import { AutoRouter, error } from "itty-router";
 import { jsonArrayFrom } from "kysely/helpers/sqlite";
 import * as v from "valibot";
-import type { CF, ReportWithProofAndCategories, RequestType } from "../types";
+import type { CF, RequestType } from "../types";
 import { type AuthorizedRequest, communityAuthorize } from "../utils/auth";
 import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
-import { generateId } from "../utils/nanoid";
 import { AwsV4Signer } from "aws4fetch";
-import type { ReportProof } from "../db-types";
 
 const ReportsRouter = AutoRouter<RequestType, CF>({ base: "/reports" });
 
-const getExtensionForFiletype = (type: ReportProof["filetype"]): string => {
+const getExtensionForFiletype = (type: "image/jpeg" | "image/png"): string => {
 	if (type === "image/jpeg") return ".jpeg";
 	if (type === "image/png") return ".png";
 	throw new Error("unsupported filetype");
-};
-
-const reportProofToUrls = (
-	proof: Omit<ReportProof, "reportId">[],
-	baseurl: string,
-): string[] => {
-	return proof.map(
-		(item) =>
-			`${baseurl}/${item.proofId}.${getExtensionForFiletype(item.filetype)}`,
-	);
-};
-
-const fixReport = (report: ReportWithProofAndCategories, baseurl: string) => {
-	return {
-		...report,
-		proof: reportProofToUrls(report.proof, baseurl),
-		categories: report.categories.map((c) => c.categoryId),
-	};
 };
 
 // GET /:id
@@ -39,25 +19,10 @@ const fixReport = (report: ReportWithProofAndCategories, baseurl: string) => {
 ReportsRouter.get("/:id", async (req, env) => {
 	const id = req.params.id;
 	if (!id) return error(400, "No ID provided.");
-	const report = await env.DB.selectFrom("Reports")
-		.selectAll()
-		.where("id", "=", id)
-		.select((qb) => [
-			jsonArrayFrom(
-				qb
-					.selectFrom("ReportCategory")
-					.select("ReportCategory.categoryId")
-					.where("ReportCategory.reportId", "=", id),
-			).as("categories"),
-			jsonArrayFrom(
-				qb
-					.selectFrom("ReportProof")
-					.select(["ReportProof.proofId", "ReportProof.filetype"])
-					.where("ReportProof.reportId", "=", id),
-			).as("proof"),
-		])
-		.executeTakeFirst();
-	return report ? fixReport(report, env.R2_BUCKET_PUBLIC_BASEURL) : null;
+
+	using report = await env.FDGL.reports.getReport(id);
+
+	return report;
 });
 
 const DateSchema = v.transform(
@@ -87,49 +52,9 @@ ReportsRouter.get("/", async (req, env) => {
 		updatedSince: searchParams.get("updatedSince"),
 	});
 
-	// basic fetching of the reports with their categories
-	let query = env.DB.selectFrom("Reports")
-		.selectAll("Reports")
-		.select((qb) => [
-			jsonArrayFrom(
-				qb
-					.selectFrom("ReportCategory")
-					.select("ReportCategory.categoryId")
-					.whereRef("ReportCategory.reportId", "=", "Reports.id"),
-			).as("categories"),
-			jsonArrayFrom(
-				qb
-					.selectFrom("ReportProof")
-					.select(["ReportProof.proofId", "ReportProof.filetype"])
-					.whereRef("ReportProof.reportId", "=", "Reports.id"),
-			).as("proof"),
-		]);
-	if (params.communityIds.length)
-		query = query.where("Reports.communityId", "in", params.communityIds);
-	// this mess is basically selecting
-	if (params.categoryIds.length)
-		query = query.where((wb) =>
-			wb(
-				"Reports.id",
-				"in",
-				wb
-					.selectFrom("ReportCategory")
-					.select("ReportCategory.reportId")
-					.where("ReportCategory.categoryId", "in", params.categoryIds),
-			),
-		);
-	if (params.createdSince)
-		query = query.where("Reports.createdAt", "<", params.createdSince);
-	if (params.revokedSince)
-		query = query.where("Reports.revokedAt", "<", params.revokedSince);
-	if (params.updatedSince)
-		query = query.where("Reports.updatedAt", "<", params.updatedSince);
+	using reports = await env.FDGL.reports.getReports(params);
 
-	const results = await query.execute();
-	const fixedCategories = results.map((report) =>
-		fixReport(report, env.R2_BUCKET_PUBLIC_BASEURL),
-	);
-	return fixedCategories;
+	return reports;
 });
 
 // POST /
@@ -163,23 +88,19 @@ ReportsRouter.put<
 	communityAuthorize,
 	getJSONBody(createReportSchema),
 	async (req, env) => {
-		const reportId = generateId();
 		const body = req.jsonParsedBody;
-		// we don't fetch categories from cache here because we need to be 100% sure that they exist
-		const categories = (
-			await env.DB.selectFrom("Categories")
-				.select("id")
-				.where("id", "in", body.categoryIds)
-				.execute()
-		).map((c) => c.id);
-		const invalidCategories = body.categoryIds.filter(
-			(c) => !categories.includes(c),
+		const res = await env.FDGL.reports.createReport(
+			{
+				playername: body.playername,
+				categoryIds: body.categoryIds,
+				createdBy: body.createdBy,
+				description: body.description,
+				proofRequestCount: body.proofRequests.length,
+			},
+			req.communityId,
 		);
-		if (invalidCategories.length)
-			return error(
-				400,
-				`Categories ${invalidCategories.join(",")} are invalid`,
-			);
+		if (res === "invalidCategories")
+			return error(400, "Some or all categories provided are invalid");
 
 		// first we create proof upload URLs
 		const reportProofUrls = [];
@@ -191,12 +112,13 @@ ReportsRouter.put<
 		// expire the URL in 1 hour
 		baseR2Url.searchParams.set("X-Amz-Expires", "3600");
 
-		for (const proofReq of body.proofRequests) {
+		for (let i = 0; i < body.proofRequests.length; i++) {
 			// for every request for proof, we ensure that the image is within our spec
 			// we already know that the image filetypes are image/jpeg or image/png
 			// and the size of each image is under 8MB
 			// for every new proof, we create a URL
-			const proofId = generateId();
+			const proofReq = body.proofRequests[i];
+			const proofId = res.proofIds[i];
 
 			baseR2Url.pathname = `/${proofId}.${getExtensionForFiletype(
 				proofReq.filetype,
@@ -223,47 +145,34 @@ ReportsRouter.put<
 			reportProofUrls.push(data.url.toString());
 		}
 
-		// now we insert everything into the database
-		await env.DB.insertInto("Reports")
-			.values({
-				id: reportId,
-				playername: body.playername,
-				communityId: req.communityId,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-				description: body.description,
-				createdBy: body.createdBy,
-			})
-			.execute();
-
 		return {
-			id: reportId,
+			id: res.id,
 			proofURLs: reportProofUrls,
 		};
 	},
 );
 
+// revoke a report
 ReportsRouter.delete<AuthorizedRequest<RequestType>, CF>(
 	"/:id",
 	communityAuthorize,
 	async (req, env) => {
 		const id = req.params.id;
-		const report = await env.DB.selectFrom("Reports")
-			.select("communityId")
-			.where("id", "=", id)
-			.executeTakeFirst();
-		if (!report) return error(404, "Report not found.");
-		if (report.communityId !== req.communityId)
-			return error(403, "You can't delete this report.");
-		const revokedAt = new Date();
-		await env.DB.updateTable("Reports")
-			.where("id", "=", id)
-			.set({
-				revokedAt: revokedAt,
-				updatedAt: revokedAt,
-			})
-			.execute();
-		return "ok";
+
+		const status = await env.FDGL.reports.revokeReport(id, req.communityId);
+
+		switch (status) {
+			case "noAccess":
+				return error(403, {
+					message: "This report doesn't belong to your community",
+				});
+			case "notFound":
+				return error(404, {
+					message: "This report was not found",
+				});
+			case "ok":
+				return { status: "ok" };
+		}
 	},
 );
 
