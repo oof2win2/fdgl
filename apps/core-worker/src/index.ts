@@ -38,7 +38,6 @@ export class FDGLService extends WorkerEntrypoint<Env> {
 		return {
 			getCategory: this.#categories.getCategory.bind(this.#categories),
 			getAllCategories: this.#categories.getAllCategories.bind(this.#categories),
-			health: this.#categories.health.bind(this.#categories),
 			createCategory: this.#categories.createCategory.bind(this.#categories),
 			mergeCategories: this.#categories.mergeCategories.bind(this.#categories),
 			updateCategory: this.#categories.updateCategory.bind(this.#categories),

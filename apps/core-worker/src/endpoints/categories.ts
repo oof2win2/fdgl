@@ -111,11 +111,4 @@ export class Categories extends BaseEndpoint {
 			.where("id", "=", source)
 			.execute();
 	}
-
-	async health() {
-		const result = await this.env.d1_db
-			.prepare("SELECT 1 AS alive;")
-			.first<number>("alive");
-		return result === 11;
-	}
 }
