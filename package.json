@@ -4,8 +4,7 @@
 		"@biomejs/biome": "1.5.3"
 	},
 	"workspaces": [
-		"packages/types",
-		"packages/clientside-handler",
-		"apps/server"
+		"packages/*",
+		"apps/*"
 	]
 }
