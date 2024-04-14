@@ -1,5 +1,6 @@
-name = "worker_a"
+name = "fdgl-backend"
 main = "./src/index.ts"
+compatibility_date = "2024-04-05"
 
 [dev]
 port = 3000
