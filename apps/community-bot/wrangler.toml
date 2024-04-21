@@ -13,6 +13,11 @@ DISCORD_API_BASEURL = "https://discord.com/api/v10"
 [env.production.vars]
 RESPONSE_TYPE = "direct"
 
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "fdgl-botdb"
+database_id = "3666f420-f8a0-4e12-bcaf-28fa939ec4d8"
+
 [[services]]
 binding = "FDGL"
 service = "fdgl-core"

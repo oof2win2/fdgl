@@ -8,12 +8,17 @@ import {
 } from "discord-api-types/v10";
 import { hexStringToUint8Array, verifyDiscordInteraction } from "./utils";
 import { handleCommandInteraction } from "./commands";
-import type { CustomEnv } from "./types";
+import type { BaseCFEnv, CustomEnv } from "./types";
+import { Kysely } from "kysely";
+import { D1Dialect } from "./kysely-d1";
+import { SerializePlugin } from "kysely-plugin-serialize";
+import type { DB } from "./db-types";
+import { pagedMessageHandler } from "./utils/discord/pagedMessageHandler";
 
 const encoder = new TextEncoder();
 
 export default {
-	fetch: async (req: Request, env: CustomEnv, ctx: ExecutionContext) => {
+	fetch: async (req: Request, env: BaseCFEnv, ctx: ExecutionContext) => {
 		if (!req.url.endsWith("/interactions")) {
 			return new Response(JSON.stringify({ message: "wrong path" }), {
 				status: 404,
@@ -48,6 +53,16 @@ export default {
 			);
 		}
 
+		// setup db and env
+		const alteredEnv: CustomEnv = {
+			...env,
+			d1_db: env.DB,
+			DB: new Kysely<DB>({
+				dialect: new D1Dialect({ database: env.DB }),
+				plugins: [new SerializePlugin()],
+			}),
+		};
+
 		let response: APIInteractionResponse | null = null;
 
 		switch (interaction.type) {
@@ -60,14 +75,19 @@ export default {
 				if (interaction.data.type === ApplicationCommandType.ChatInput) {
 					response = await handleCommandInteraction(
 						interaction as APIChatInputApplicationCommandInteraction,
-						env,
+						alteredEnv,
 					);
 				} else
-					[
-						console.error(
-							`Unhandled ApplicationCommand type ${interaction.data.type}`,
-						),
-					];
+					console.error(
+						`Unhandled ApplicationCommand type ${interaction.data.type}`,
+					);
+				break;
+			case InteractionType.MessageComponent:
+				if (interaction.data.custom_id.startsWith("paging")) {
+					response = await pagedMessageHandler(interaction, alteredEnv);
+				} else {
+					console.error("Unhandled MessageComponent");
+				}
 				break;
 			default:
 				console.error("Unhandled Interaction Type", interaction.type);

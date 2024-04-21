@@ -1,23 +1,24 @@
 {
-	"name": "community-bot",
-	"module": "src/index.ts",
-	"type": "module",
-	"scripts": {
-		"dev": "wrangler dev"
-	},
-	"dependencies": {
-		"discord-api-types": "^0.37.79",
-		"kysely": "^0.27.3",
-		"kysely-d1": "^0.3.0",
-		"kysely-plugin-serialize": "^0.6.0",
-		"nanoid": "^5.0.5",
-		"valibot": "^0.28.1"
-	},
-	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20240208.0",
-		"@types/bun": "^1.0.5"
-	},
-	"peerDependencies": {
-		"typescript": "^5.0.0"
-	}
+  "name": "community-bot",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "@discordjs/builders": "^1.7.0",
+    "discord-api-types": "^0.37.79",
+    "kysely": "^0.27.3",
+    "kysely-d1": "^0.3.0",
+    "kysely-plugin-serialize": "^0.6.0",
+    "nanoid": "^5.0.5",
+    "valibot": "^0.28.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "@types/bun": "^1.0.5"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
 }
