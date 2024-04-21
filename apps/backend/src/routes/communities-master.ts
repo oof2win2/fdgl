@@ -17,7 +17,7 @@ masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
 	"/",
 	getJSONBody(createCommunitySchema),
 	async (req, env) => {
-		using res = await env.FDGL.communities.createCommunity({
+		const res = await env.FDGL.communities.createCommunity({
 			name: req.jsonParsedBody.name,
 			contact: req.jsonParsedBody.contact,
 		});

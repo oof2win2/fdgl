@@ -20,7 +20,7 @@ ReportsRouter.get("/:id", async (req, env) => {
 	const id = req.params.id;
 	if (!id) return error(400, "No ID provided.");
 
-	using report = await env.FDGL.reports.getReport(id);
+	const report = await env.FDGL.reports.getReport(id);
 
 	return report;
 });
@@ -52,7 +52,7 @@ ReportsRouter.get("/", async (req, env) => {
 		updatedSince: searchParams.get("updatedSince"),
 	});
 
-	using reports = await env.FDGL.reports.getReports(params);
+	const reports = await env.FDGL.reports.getReports(params);
 
 	return reports;
 });

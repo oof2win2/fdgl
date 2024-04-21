@@ -9,24 +9,15 @@ import communitiesRouter from "./routes/communities";
 
 const router = AutoRouter<RequestType, CF>();
 
-router.all("/categories/*", categoriesRouter.fetch);
-// .all("/communities/*", communitiesRouter.fetch)
-// .all("/reports/*", ReportsRouter.fetch)
-// .all(
-// 	"/master/categories/*",
-// 	MasterAuthenticate,
-// 	masterCategoriesRouter.fetch,
-// )
-// .all(
-// 	"/master/communities/*",
-// 	MasterAuthenticate,
-// 	masterCommunitiesRouter.fetch,
-// );
-router.get("/health", () => {
-	return { status: "ok" };
-});
-router.get("/categories", () => {
-	return { status: "umm" };
-});
+router
+	.all("/categories/*", categoriesRouter.fetch)
+	.all("/communities/*", communitiesRouter.fetch)
+	.all("/reports/*", ReportsRouter.fetch)
+	.all("/master/categories/*", MasterAuthenticate, masterCategoriesRouter.fetch)
+	.all(
+		"/master/communities/*",
+		MasterAuthenticate,
+		masterCommunitiesRouter.fetch,
+	);
 
 export default router;
