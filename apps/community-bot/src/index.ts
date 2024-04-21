@@ -1,24 +1,19 @@
 import {
+	ApplicationCommandType,
 	InteractionResponseType,
 	InteractionType,
-	type APIApplicationCommandInteraction,
+	type APIChatInputApplicationCommandInteraction,
 	type APIInteraction,
 	type APIInteractionResponse,
 } from "discord-api-types/v10";
 import { hexStringToUint8Array, verifyDiscordInteraction } from "./utils";
-import { Ping } from "./commands/ping";
+import { handleCommandInteraction } from "./commands";
+import type { CustomEnv } from "./types";
 
 const encoder = new TextEncoder();
 
-function handleCommandInteraction(
-	interaction: APIApplicationCommandInteraction,
-) {
-	const res = Ping.handler(interaction);
-	return res;
-}
-
 export default {
-	fetch: async (req: Request, env: Env, ctx: ExecutionContext) => {
+	fetch: async (req: Request, env: CustomEnv, ctx: ExecutionContext) => {
 		if (!req.url.endsWith("/interactions")) {
 			return new Response(JSON.stringify({ message: "wrong path" }), {
 				status: 404,
@@ -62,23 +57,46 @@ export default {
 				};
 				break;
 			case InteractionType.ApplicationCommand:
-				response = await handleCommandInteraction(interaction);
+				if (interaction.data.type === ApplicationCommandType.ChatInput) {
+					response = await handleCommandInteraction(
+						interaction as APIChatInputApplicationCommandInteraction,
+						env,
+					);
+				} else
+					[
+						console.error(
+							`Unhandled ApplicationCommand type ${interaction.data.type}`,
+						),
+					];
 				break;
 			default:
 				console.error("Unhandled Interaction Type", interaction.type);
 				response = null;
 		}
 
-		console.log(response);
-
-		if (response) {
+		// @ts-expect-error
+		if (env.RESPONSE_TYPE === "direct") {
 			return new Response(JSON.stringify(response), {
 				headers: { "content-type": "application/json" },
 			});
 		}
-		return new Response(JSON.stringify({ message: "Unknown Interaction" }), {
-			status: 500,
-			headers: { "content-type": "application/json" },
-		});
+
+		// in dev mode, we want to have better logging
+		const res = await fetch(
+			`${env.DISCORD_API_BASEURL}/interactions/${interaction.id}/${interaction.token}/callback`,
+			{
+				method: "POST",
+				body: JSON.stringify(response),
+				headers: { "content-type": "application/json" },
+			},
+		);
+		if (res.status === 204) {
+			// success
+		} else {
+			const b = await res.json();
+			console.log(JSON.stringify(b, null, 2));
+		}
+
+		return new Response(null, { status: 204 });
 	},
 };

@@ -1,20 +1,37 @@
 import {
-	ComponentType,
+	ApplicationCommandType,
 	InteractionResponseType,
 	MessageFlags,
-	TextInputStyle,
+	type RESTPostAPIApplicationGuildCommandsJSONBody,
 } from "discord-api-types/v10";
-import type { BaseCommand } from "../baseCommand";
+import type {
+	BaseCommandHandler,
+	CommandExecutionData,
+	CommandConfig,
+} from "../baseCommand";
 
-export const Ping: BaseCommand = {
+const Config: CommandConfig = {
 	name: "ping",
-	handler: async () => {
-		return {
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: "Pong!",
-				flags: MessageFlags.Ephemeral,
-			},
-		};
-	},
+	description: "Ping the bot",
+};
+
+export const Handler: BaseCommandHandler = async () => {
+	return {
+		type: InteractionResponseType.ChannelMessageWithSource,
+		data: {
+			content: "Pong!",
+			flags: MessageFlags.Ephemeral,
+		},
+	};
+};
+
+export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
+	type: ApplicationCommandType.ChatInput,
+	name: Config.name,
+	description: Config.description,
+};
+
+export const ExecutionData: CommandExecutionData = {
+	handler: Handler,
+	config: Config,
 };

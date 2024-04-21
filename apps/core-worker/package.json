@@ -6,7 +6,6 @@
 	"types": "./src/index.ts",
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240405.0",
-		"@fdgl/core-worker": "workspace:0.0.1",
 		"@types/bun": "latest"
 	},
 	"peerDependencies": {
