@@ -6,8 +6,7 @@
     "dev": "wrangler dev"
   },
   "dependencies": {
-    "discord-interactions": "^3.4.0",
-    "itty-router": "5",
+    "discord-api-types": "^0.37.79",
     "kysely": "^0.27.3",
     "kysely-d1": "^0.3.0",
     "kysely-plugin-serialize": "^0.6.0",

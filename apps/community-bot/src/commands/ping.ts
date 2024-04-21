@@ -1,15 +1,19 @@
-import { InteractionResponseType } from "discord-interactions";
+import {
+	ComponentType,
+	InteractionResponseType,
+	MessageFlags,
+	TextInputStyle,
+} from "discord-api-types/v10";
 import type { BaseCommand } from "../baseCommand";
-import { getMessageFlags } from "../utils/getMessageFlags";
 
 export const Ping: BaseCommand = {
 	name: "ping",
-	handler: async (interaction) => {
+	handler: async () => {
 		return {
-			type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
 				content: "Pong!",
-				flags: getMessageFlags("EPHEMERAL"),
+				flags: MessageFlags.Ephemeral,
 			},
 		};
 	},
