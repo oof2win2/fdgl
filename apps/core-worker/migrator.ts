@@ -22,7 +22,7 @@ async function getStdin(prompt: string): Promise<string> {
 const migrationName = await getStdin("Please enter the name of the migration");
 if (migrationName === "") {
 	console.log("A migration name must be provided");
-	process.exit(1);
+	process.exit(0);
 }
 
 await $`bun wrangler d1 migrations create ${dbBinding} ${migrationName}`;
@@ -37,5 +37,10 @@ appendFileSync(`./migrations/${latestMigration}`, sqlSchema);
 
 console.log("Migration written to the file");
 
-await $`bun wrangler d1 migrations apply ${dbBinding}`;
-console.log("Migration applied");
+const shouldApply = await getStdin("Should the migration be applied? Y/n ");
+if (shouldApply === "" || shouldApply.toLowerCase() === "y") {
+	await $`bun wrangler d1 migrations apply fdgl-maindb`;
+} else {
+	console.log("Migration not applied.");
+	console.log("Apply the migration yourself by running bun db:migrate");
+}
