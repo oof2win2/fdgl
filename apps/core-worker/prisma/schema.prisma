@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator kysely {
+    provider = "prisma-kysely"
+
+    // Optionally provide a destination directory for the generated file
+    // and a filename of your choice
+    output   = "../src"
+    fileName = "db-types.ts"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = "bob.sqlite" // wont be used
+}
+
+model Authorization {
+    apikey      String   @id
+    communityId String
+    /// @kyselyType(Date)
+    expiresAt   DateTime
+}
+
+model Categories {
+    id          String @id
+    name        String
+    description String
+}
+
+model Communities {
+    id      String @id
+    name    String
+    contact String
+}
+
+model Report {
+    id          String  @id
+    playername  String
+    description String?
+    communityId String
+    createdBy   String
+
+    revokedAt DateTime? /// @kyselyType(Date)
+    createdAt DateTime /// @kyselyType(Date)
+    updatedAt DateTime /// @kyselyType(Date)
+
+    @@index([updatedAt])
+    @@index([playername])
+    @@index([communityId])
+}
+
+model ReportCategory {
+    id         Int    @id @default(autoincrement())
+    reportId   String
+    categoryId String
+
+    @@index([reportId])
+    @@index([categoryId])
+}
+
+model ReportProof {
+    proofId  String @id
+    reportId String
+    filetype String /// @kyselyType("image/jpeg" | "image/png")
+
+    @@index([reportId])
+}
