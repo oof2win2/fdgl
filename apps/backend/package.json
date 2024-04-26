@@ -18,9 +18,6 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240208.0",
-		"@types/bun": "^1.0.5",
-		"kysely-migrate": "^0.0.16",
-		"prisma": "^5.10.2",
-		"prisma-kysely": "^1.8.0"
+		"@types/bun": "^1.0.5"
 	}
 }
