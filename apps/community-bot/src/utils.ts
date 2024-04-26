@@ -1,5 +1,3 @@
-import type { APIInteractionResponse } from "discord-api-types/v10";
-
 export function hexStringToUint8Array(hex: string) {
 	const bytes = [];
 	for (let i = 0; i < hex.length; i += 2) {

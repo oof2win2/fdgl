@@ -8,7 +8,8 @@ import {
 	type CommandConfig,
 	type CommandExecutionData,
 } from "../../baseCommand";
-import { ListCategoriesConfig, ListCategoriesExecutionData } from "./list";
+import { ListCategoriesExecutionData } from "./list";
+import { SearchCategoriesExecutionData } from "./search";
 
 const Config: CommandConfig = {
 	name: "categories",
@@ -17,6 +18,7 @@ const Config: CommandConfig = {
 
 export const Handler = CommandWithSubcommandsHandler([
 	ListCategoriesExecutionData,
+	SearchCategoriesExecutionData,
 ]);
 
 export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
@@ -26,8 +28,22 @@ export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
 	options: [
 		{
 			type: ApplicationCommandOptionType.Subcommand,
-			name: ListCategoriesConfig.name,
-			description: ListCategoriesConfig.description,
+			name: ListCategoriesExecutionData.config.name,
+			description: ListCategoriesExecutionData.config.description,
+		},
+		{
+			type: ApplicationCommandOptionType.Subcommand,
+			name: SearchCategoriesExecutionData.config.name,
+			description: SearchCategoriesExecutionData.config.description,
+			options: [
+				{
+					type: ApplicationCommandOptionType.String,
+					name: "category",
+					description: "Name of the category",
+					autocomplete: true,
+					required: true,
+				},
+			],
 		},
 	],
 };
@@ -36,3 +52,5 @@ export const ExecutionData: CommandExecutionData = {
 	handler: Handler,
 	config: Config,
 };
+
+export default Config;

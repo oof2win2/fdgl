@@ -35,3 +35,5 @@ export const ExecutionData: CommandExecutionData = {
 	handler: Handler,
 	config: Config,
 };
+
+export default Config;

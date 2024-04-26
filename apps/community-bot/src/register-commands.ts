@@ -7,7 +7,6 @@ const url = `https://discord.com/api/v10/applications/${config.DISCORD_APPLICATI
 for (const command of commands) {
 	const data = await import(`./commands/${command}`);
 	const registerData = data.Register;
-	console.log(registerData);
 	const res = await fetch(url, {
 		method: "POST",
 		body: JSON.stringify(registerData),

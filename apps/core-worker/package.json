@@ -1,28 +1,28 @@
 {
-	"name": "@fdgl/core-worker",
-	"version": "0.0.1",
-	"module": "src/index.ts",
-	"type": "module",
-	"types": "./src/index.ts",
-	"scripts": {
-		"dev": "wrangler dev",
-		"db:migrate": "bun run migrator.ts",
-		"db:apply": "wrangler d1 migrations apply fdgl-maindb"
-	},
-	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20240405.0",
-		"@types/bun": "latest",
-		"prisma": "^5.13.0",
-		"prisma-kysely": "^1.8.0"
-	},
-	"peerDependencies": {
-		"typescript": "^5.0.0"
-	},
-	"dependencies": {
-		"itty-time": "^0.2.2",
-		"kysely": "^0.27.3",
-		"kysely-plugin-serialize": "^0.6.0",
-		"nanoid": "^5.0.7",
-		"valibot": "^0.30.0"
-	}
+  "name": "@fdgl/core-worker",
+  "version": "0.0.1",
+  "module": "src/index.ts",
+  "type": "module",
+  "types": "./src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "db:migrate": "bun run migrator.ts",
+    "db:apply": "wrangler d1 migrations apply fdgl-maindb"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240405.0",
+    "@types/bun": "latest",
+    "prisma": "^5.13.0",
+    "prisma-kysely": "^1.8.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "itty-time": "^0.2.2",
+    "kysely": "^0.27.3",
+    "kysely-plugin-serialize": "^0.6.0",
+    "nanoid": "^5.0.7",
+    "valibot": "^0.30.0"
+  }
 }
