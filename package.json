@@ -2,6 +2,8 @@
   "name": "fdgl",
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
+    "prisma": "^5.13.0",
+    "prisma-kysely": "^1.8.0",
     "wrangler": "^3.51.2"
   },
   "workspaces": [

@@ -1,0 +1,28 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator kysely {
+    provider = "prisma-kysely"
+
+    // Optionally provide a destination directory for the generated file
+    // and a filename of your choice
+    output   = "../src"
+    fileName = "db-types.ts"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = "bob.sqlite" // wont be used
+}
+
+model PagedData {
+    id          String   @id
+    /// @kyselyType(APIEmbedField[])
+    data        String
+    currentPage Int
+    /// @kyselyType(Date)
+    expiresAt   DateTime
+}

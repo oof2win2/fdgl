@@ -1,7 +1,5 @@
 import {
-	ComponentType,
 	InteractionResponseType,
-	type APIEmbedField,
 	type APIInteractionResponse,
 	type APIMessageComponentInteraction,
 } from "discord-api-types/v10";
