@@ -37,7 +37,7 @@ model Communities {
     contact String
 }
 
-model Report {
+model Reports {
     id          String  @id
     playername  String
     description String?
