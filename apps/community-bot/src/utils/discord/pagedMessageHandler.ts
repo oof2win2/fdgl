@@ -34,7 +34,7 @@ export async function pagedMessageHandler(
 			},
 		};
 
-	const parsed = data.data as unknown as APIEmbedField[];
+	const fields = data.data;
 
 	let newPage = data.currentPage;
 	if (interaction.data.custom_id === "paging_prev") {
@@ -42,7 +42,7 @@ export async function pagedMessageHandler(
 		if (newPage === -1) newPage = 0;
 	} else {
 		newPage++;
-		const maxPageCount = Math.ceil(parsed.length / 10) - 1;
+		const maxPageCount = Math.ceil(fields.length / 10) - 1;
 		if (newPage > maxPageCount) newPage = maxPageCount;
 	}
 
@@ -53,7 +53,7 @@ export async function pagedMessageHandler(
 		})
 		.execute();
 
-	embed.fields = parsed.slice(newPage * 10, newPage * 10 + 10);
+	embed.fields = fields.slice(newPage * 10, newPage * 10 + 10);
 	return {
 		type: InteractionResponseType.UpdateMessage,
 		data: {

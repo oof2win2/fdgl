@@ -5,7 +5,6 @@ import type {
 	APIEmbedFooter,
 	APIEmbedImage,
 } from "discord-api-types/v10";
-import { normalizeArray, type RestOrArray } from "../../util/normalizeArray.js";
 
 /**
  * A tuple satisfying the RGB color model.
@@ -108,11 +107,9 @@ export class EmbedBuilder {
 	 * ```
 	 * @param fields - The fields to add
 	 */
-	public addFields(...fields: RestOrArray<APIEmbedField>): this {
-		const normalizedFields = normalizeArray(fields);
-
-		if (this.data.fields) this.data.fields.push(...normalizedFields);
-		else this.data.fields = normalizedFields;
+	public addFields(...fields: APIEmbedField[]): this {
+		if (this.data.fields) this.data.fields.push(...fields);
+		else this.data.fields = fields;
 		return this;
 	}
 
@@ -168,12 +165,8 @@ export class EmbedBuilder {
 	 * You can set a maximum of 25 fields.
 	 * @param fields - The fields to set
 	 */
-	public setFields(...fields: RestOrArray<APIEmbedField>): this {
-		this.spliceFields(
-			0,
-			this.data.fields?.length ?? 0,
-			...normalizeArray(fields),
-		);
+	public setFields(...fields: APIEmbedField[]): this {
+		this.spliceFields(0, this.data.fields?.length ?? 0, ...fields);
 		return this;
 	}
 

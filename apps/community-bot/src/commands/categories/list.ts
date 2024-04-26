@@ -37,7 +37,7 @@ const handler: BaseCommandHandler = async (interaction, env) => {
 		.values({
 			id: interaction.id,
 			currentPage: 0,
-			data: JSON.stringify(fields),
+			data: fields,
 			expiresAt: new Date(),
 		})
 		.execute();
