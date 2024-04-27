@@ -3,28 +3,53 @@ import {
 	type APIApplicationCommandInteractionDataOption,
 } from "discord-api-types/v10";
 
-export function getCommandStringValue<Required extends boolean>(
+function getTypedOption<T extends ApplicationCommandOptionType>(
 	options: APIApplicationCommandInteractionDataOption[] | undefined,
 	name: string,
-	required: Required,
-): Required extends true ? string : string | undefined {
-	if (!options) {
-		if (required) throw new Error("Option not found");
-		return undefined;
-	}
-	const option = options.find((o) => o.name === name);
+	type: T,
+): (APIApplicationCommandInteractionDataOption & { type: T }) | null {
+	if (!options) return null;
+	const option = options.find((o) => o.name === name && o.type === type);
+	if (!option) return null;
+	if (option.type === type)
+		return option as APIApplicationCommandInteractionDataOption & { type: T };
+	throw new Error("invalid option type");
+}
+
+export function getStringOption(
+	options: APIApplicationCommandInteractionDataOption[] | undefined,
+	name: string,
+	required: true,
+): string;
+export function getStringOption(
+	options: APIApplicationCommandInteractionDataOption[] | undefined,
+	name: string,
+	required?: boolean,
+): string | null;
+export function getStringOption(
+	options: APIApplicationCommandInteractionDataOption[] | undefined,
+	name: string,
+	required = false,
+) {
+	const option = getTypedOption(
+		options,
+		name,
+		ApplicationCommandOptionType.String,
+	);
 	if (!option) {
-		if (required) throw new Error("Option not found");
-		return undefined;
+		if (required) throw new Error("Option is required but missing");
+		return null;
 	}
-	if (option.type !== ApplicationCommandOptionType.String)
-		throw new Error("Invalid option type");
+
 	return option.value;
 }
 
-export function getFocusedInteractionOption(
+export function getFocusedInteractionOption<
+	T extends ApplicationCommandOptionType,
+>(
 	options: APIApplicationCommandInteractionDataOption[] | undefined,
-) {
+	type: T,
+): (APIApplicationCommandInteractionDataOption & { type: T }) | null {
 	if (!options) return null;
 	for (const option of options) {
 		if (option.type === ApplicationCommandOptionType.Subcommand) continue;
@@ -36,7 +61,8 @@ export function getFocusedInteractionOption(
 		if (option.type === ApplicationCommandOptionType.Role) continue;
 		if (option.type === ApplicationCommandOptionType.User) continue;
 
-		if (option.focused) return option;
+		if (option.type === type && option.focused)
+			return option as APIApplicationCommandInteractionDataOption & { type: T };
 	}
 	return null;
 }

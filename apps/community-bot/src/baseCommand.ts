@@ -1,5 +1,6 @@
 import {
 	ApplicationCommandOptionType,
+	ApplicationCommandType,
 	InteractionType,
 	type APIApplicationCommandAutocompleteInteraction,
 	type APIApplicationCommandAutocompleteResponse,
@@ -10,8 +11,8 @@ import {
 } from "discord-api-types/v10";
 import type { CustomEnv } from "./types";
 
-export type BaseCommandHandler = (
-	interaction: APIApplicationCommandInteraction,
+export type ChatInputCommandHandler = (
+	interaction: APIChatInputApplicationCommandInteraction,
 	env: CustomEnv,
 ) => Promise<APIInteractionResponse>;
 
@@ -26,8 +27,8 @@ export type CommandConfig = {
 };
 
 export type CommandExecutionData = {
-	handler: BaseCommandHandler;
-	autocomplete?: AutocompleteHandler;
+	ChatInputHandler: ChatInputCommandHandler;
+	AutocompleteHandler?: AutocompleteHandler;
 	config: CommandConfig;
 };
 
@@ -37,9 +38,10 @@ export const commands = ["ping", "categories"];
 
 export const CommandWithSubcommandsHandler = (
 	subcommands: CommandExecutionData[],
-): BaseCommandHandler => {
-	return (interaction, env) => {
-		if (interaction.type === InteractionType.ApplicationCommand) {
+	config: CommandConfig,
+): CommandExecutionData => {
+	return {
+		ChatInputHandler: (interaction, env) => {
 			const options = interaction.data.options ?? [];
 			const subcommand = options.find(
 				(o) =>
@@ -47,13 +49,19 @@ export const CommandWithSubcommandsHandler = (
 					o.type === ApplicationCommandOptionType.SubcommandGroup,
 			);
 			if (!subcommand) throw new Error("subcommand not found");
+			if (
+				subcommand.type !== ApplicationCommandOptionType.Subcommand &&
+				subcommand.type !== ApplicationCommandOptionType.SubcommandGroup
+			)
+				throw new Error("subcommand not found");
 
 			const sub = subcommands.find((s) => s.config.name === subcommand.name);
+			// we propagate the options
+			interaction.data.options = subcommand.options;
 			if (!sub) throw new Error("subcommand not found");
-			return sub.handler(interaction, env);
-		}
-		// autocomplete
-		if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
+			return sub.ChatInputHandler(interaction, env);
+		},
+		AutocompleteHandler: (interaction, env) => {
 			const options = interaction.data.options ?? [];
 			const subcommand = options.find(
 				(o) =>
@@ -61,14 +69,21 @@ export const CommandWithSubcommandsHandler = (
 					o.type === ApplicationCommandOptionType.SubcommandGroup,
 			);
 			if (!subcommand) throw new Error("subcommand not found");
+			if (
+				subcommand.type !== ApplicationCommandOptionType.Subcommand &&
+				subcommand.type !== ApplicationCommandOptionType.SubcommandGroup
+			)
+				throw new Error("subcommand not found");
+			if (!subcommand.options) throw new Error("no options");
 
 			const sub = subcommands.find((s) => s.config.name === subcommand.name);
+			// we propagate the options
+			interaction.data.options = subcommand.options;
 			if (!sub) throw new Error("subcommand not found");
-			if (!sub.autocomplete)
+			if (!sub.AutocompleteHandler)
 				throw new Error("subcommand doesn't support autocomplete");
-			return sub.autocomplete(interaction, env);
-		}
-
-		throw new Error(`Interaction of type ${interaction.type} is unhandled`);
+			return sub.AutocompleteHandler(interaction, env);
+		},
+		config,
 	};
 };

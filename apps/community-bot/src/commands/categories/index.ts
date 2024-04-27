@@ -6,7 +6,6 @@ import {
 import {
 	CommandWithSubcommandsHandler,
 	type CommandConfig,
-	type CommandExecutionData,
 } from "../../baseCommand";
 import { ListCategoriesExecutionData } from "./list";
 import { SearchCategoriesExecutionData } from "./search";
@@ -16,10 +15,10 @@ const Config: CommandConfig = {
 	description: "Interact with FDGL Categories",
 };
 
-export const Handler = CommandWithSubcommandsHandler([
-	ListCategoriesExecutionData,
-	SearchCategoriesExecutionData,
-]);
+export const ExecutionData = CommandWithSubcommandsHandler(
+	[ListCategoriesExecutionData, SearchCategoriesExecutionData],
+	Config,
+);
 
 export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
 	type: ApplicationCommandType.ChatInput,
@@ -46,11 +45,6 @@ export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
 			],
 		},
 	],
-};
-
-export const ExecutionData: CommandExecutionData = {
-	handler: Handler,
-	config: Config,
 };
 
 export default Config;

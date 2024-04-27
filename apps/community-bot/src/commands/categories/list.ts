@@ -9,7 +9,7 @@ import {
 } from "discord-api-types/v10";
 import type {
 	AutocompleteHandler,
-	BaseCommandHandler,
+	ChatInputCommandHandler,
 	CommandExecutionData,
 } from "../../baseCommand";
 import { getFocusedInteractionOption } from "../../utils/discord/getCommandOption";
@@ -21,7 +21,7 @@ export const ListCategoriesConfig: RESTPostAPIApplicationGuildCommandsJSONBody =
 		description: "List all categories present in FDGL",
 	};
 
-const handler: BaseCommandHandler = async (interaction, env) => {
+const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const categories = await env.FDGL.categories.getAllCategories();
 
 	if (!categories.length)
@@ -82,28 +82,9 @@ const handler: BaseCommandHandler = async (interaction, env) => {
 	};
 };
 
-const autocomplete: AutocompleteHandler = async (interaction, env) => {
-	const categories = await env.FDGL.categories.getAllCategories();
-	const focused = getFocusedInteractionOption(interaction.data.options);
-	const sortedBySimilarity = categories
-		.map((c) => ({
-			name: c.name,
-			value: c.id,
-			sim: focused ? stringSimilarity(c.name, focused.name) : 0,
-		}))
-		.sort((a, b) => a.sim - b.sim);
-	return {
-		type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-		data: {
-			choices: sortedBySimilarity.slice(0, 25),
-		},
-	};
-};
-
 export const ListCategoriesExecutionData: CommandExecutionData = {
 	config: ListCategoriesConfig,
-	handler,
-	autocomplete,
+	ChatInputHandler: handler,
 };
 
 export default ListCategoriesConfig;

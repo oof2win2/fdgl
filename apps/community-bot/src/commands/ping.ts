@@ -5,7 +5,7 @@ import {
 	type RESTPostAPIApplicationGuildCommandsJSONBody,
 } from "discord-api-types/v10";
 import type {
-	BaseCommandHandler,
+	ChatInputCommandHandler,
 	CommandExecutionData,
 	CommandConfig,
 } from "../baseCommand";
@@ -15,7 +15,7 @@ const Config: CommandConfig = {
 	description: "Ping the bot",
 };
 
-export const Handler: BaseCommandHandler = async () => {
+const Handler: ChatInputCommandHandler = async () => {
 	return {
 		type: InteractionResponseType.ChannelMessageWithSource,
 		data: {
@@ -32,7 +32,7 @@ export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
 };
 
 export const ExecutionData: CommandExecutionData = {
-	handler: Handler,
+	ChatInputHandler: Handler,
 	config: Config,
 };
 

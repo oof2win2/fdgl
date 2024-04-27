@@ -7,7 +7,10 @@ import {
 	type APIInteractionResponse,
 } from "discord-api-types/v10";
 import { hexStringToUint8Array, verifyDiscordInteraction } from "./utils";
-import { handleCommandInteraction } from "./commands";
+import {
+	handleAutocompleteInteraction,
+	handleChatInputInteraction,
+} from "./commands";
 import type { BaseCFEnv, CustomEnv } from "./types";
 import { Kysely } from "kysely";
 import { D1Dialect } from "./kysely-d1";
@@ -73,7 +76,7 @@ export default {
 				break;
 			case InteractionType.ApplicationCommand:
 				if (interaction.data.type === ApplicationCommandType.ChatInput) {
-					response = await handleCommandInteraction(
+					response = await handleChatInputInteraction(
 						interaction as APIChatInputApplicationCommandInteraction,
 						alteredEnv,
 					);
@@ -81,6 +84,9 @@ export default {
 					console.error(
 						`Unhandled ApplicationCommand type ${interaction.data.type}`,
 					);
+				break;
+			case InteractionType.ApplicationCommandAutocomplete:
+				response = await handleAutocompleteInteraction(interaction, alteredEnv);
 				break;
 			case InteractionType.MessageComponent:
 				if (interaction.data.custom_id.startsWith("paging")) {
