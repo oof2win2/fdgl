@@ -7,16 +7,16 @@ import {
 	CommandWithSubcommandsHandler,
 	type CommandConfig,
 } from "../../baseCommand";
-import { ListCategoriesExecutionData } from "./list";
-import { SearchCategoriesExecutionData } from "./search";
+import { ListCommunitiesExecutionData } from "./list";
+import { SearchCommunitiesExecutionData } from "./search";
 
 const Config: CommandConfig = {
-	name: "categories",
+	name: "communities",
 	description: "", // we have subcommands so this is empty
 };
 
 export const ExecutionData = CommandWithSubcommandsHandler(
-	[ListCategoriesExecutionData, SearchCategoriesExecutionData],
+	[ListCommunitiesExecutionData, SearchCommunitiesExecutionData],
 	Config,
 );
 
@@ -27,18 +27,18 @@ export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
 	options: [
 		{
 			type: ApplicationCommandOptionType.Subcommand,
-			name: ListCategoriesExecutionData.config.name,
-			description: ListCategoriesExecutionData.config.description,
+			name: ListCommunitiesExecutionData.config.name,
+			description: ListCommunitiesExecutionData.config.description,
 		},
 		{
 			type: ApplicationCommandOptionType.Subcommand,
-			name: SearchCategoriesExecutionData.config.name,
-			description: SearchCategoriesExecutionData.config.description,
+			name: SearchCommunitiesExecutionData.config.name,
+			description: SearchCommunitiesExecutionData.config.description,
 			options: [
 				{
 					type: ApplicationCommandOptionType.String,
-					name: "category",
-					description: "Name of the category",
+					name: "community",
+					description: "Name of the community",
 					autocomplete: true,
 					required: true,
 				},

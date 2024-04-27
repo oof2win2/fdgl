@@ -11,32 +11,32 @@ import type {
 	CommandExecutionData,
 } from "../../baseCommand";
 
-export const ListCategoriesConfig: RESTPostAPIApplicationGuildCommandsJSONBody =
+export const ListCommunitiesConfig: RESTPostAPIApplicationGuildCommandsJSONBody =
 	{
 		name: "list",
-		description: "List all categories present in FDGL",
+		description: "List all communities present in FDGL",
 	};
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
-	const categories = await env.FDGL.categories.getAllCategories();
+	const communities = await env.FDGL.communities.getAllCommunities();
 
-	if (!categories.length)
+	if (!communities.length)
 		return {
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: "There are currently no categories in the FDGL system",
+				content: "There are currently no communities in the FDGL system",
 				flags: MessageFlags.Ephemeral,
 			},
 		};
 
 	const embed: APIEmbed = {};
-	embed.title = "FDGL Categories";
-	embed.description = "All Categories within the FDGL system";
+	embed.title = "FDGL Communities";
+	embed.description = "All Communities within the FDGL system";
 
-	const fields = categories.map((category) => {
+	const fields = communities.map((category) => {
 		return {
 			name: `${category.name} (\`${category.id}\`)`,
-			value: category.description,
+			value: `Contact: ${category.contact}`,
 		};
 	});
 
@@ -78,9 +78,9 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 	};
 };
 
-export const ListCategoriesExecutionData: CommandExecutionData = {
-	config: ListCategoriesConfig,
+export const ListCommunitiesExecutionData: CommandExecutionData = {
+	config: ListCommunitiesConfig,
 	ChatInputHandler: handler,
 };
 
-export default ListCategoriesConfig;
+export default ListCommunitiesConfig;

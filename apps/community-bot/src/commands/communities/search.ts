@@ -16,34 +16,34 @@ import {
 } from "../../utils/discord/getCommandOption";
 import { stringSimilarity } from "string-similarity-js";
 
-export const SearchCategoriesConfig: CommandConfig = {
+export const SearchCommunitiesConfig: CommandConfig = {
 	name: "search",
-	description: "Search through categories present in FDGL",
+	description: "Search through communities present in FDGL",
 };
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
-	const id = getStringOption(interaction.data.options, "category", true);
-	const category = await env.FDGL.categories.getCategory(id);
+	const id = getStringOption(interaction.data.options, "community", true);
+	const community = await env.FDGL.communities.getCommunity(id);
 
-	if (!category)
+	if (!community)
 		return {
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: "The category could not be found",
+				content: "The community could not be found",
 				flags: MessageFlags.Ephemeral,
 			},
 		};
 
 	const embed: APIEmbed = {};
-	embed.title = "FDGL Category Info";
+	embed.title = "FDGL Community Info";
 	embed.fields = [
 		{
-			name: "Category Name",
-			value: category.name,
+			name: "Community Name",
+			value: community.name,
 		},
 		{
-			name: "Category Description",
-			value: category.description,
+			name: "Community Contact",
+			value: community.contact,
 		},
 	];
 
@@ -56,12 +56,12 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 };
 
 const autocomplete: AutocompleteHandler = async (interaction, env) => {
-	const categories = await env.FDGL.categories.getAllCategories();
+	const communities = await env.FDGL.communities.getAllCommunities();
 	const focused = getFocusedInteractionOption(
 		interaction.data.options,
 		ApplicationCommandOptionType.String,
 	);
-	const sortedBySimilarity = categories
+	const sortedBySimilarity = communities
 		.map((c) => ({
 			name: c.name,
 			value: c.id,
@@ -77,10 +77,10 @@ const autocomplete: AutocompleteHandler = async (interaction, env) => {
 	};
 };
 
-export const SearchCategoriesExecutionData: CommandExecutionData = {
-	config: SearchCategoriesConfig,
+export const SearchCommunitiesExecutionData: CommandExecutionData = {
+	config: SearchCommunitiesConfig,
 	ChatInputHandler: handler,
 	AutocompleteHandler: autocomplete,
 };
 
-export default SearchCategoriesConfig;
+export default SearchCommunitiesConfig;

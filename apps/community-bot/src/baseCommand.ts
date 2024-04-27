@@ -32,7 +32,7 @@ export type CommandExecutionData = {
 	config: CommandConfig;
 };
 
-export const commands = ["ping", "categories"];
+export const commands = ["ping", "categories", "communities"];
 
 // TODO: fix the typings
 
