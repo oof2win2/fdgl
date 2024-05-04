@@ -5,10 +5,7 @@ import {
 	MessageFlags,
 	type APIEmbed,
 } from "discord-api-types/v10";
-import {
-	type ChatInputCommandHandler,
-	type CommandConfig,
-} from "@/utils/commands";
+import type { ChatInputCommandHandler, CommandConfig } from "@/utils/commands";
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const categories = await env.FDGL.categories.getAllCategories();

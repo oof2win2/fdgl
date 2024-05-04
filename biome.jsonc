@@ -6,7 +6,10 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"suspicious": {
+				"noRedeclare": "off", // this is off because of https://github.com/biomejs/biome/issues/2683
+			}
 		}
 	}
 }

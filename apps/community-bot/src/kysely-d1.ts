@@ -2,12 +2,12 @@
 // mainly waiting until https://github.com/aidenwallis/kysely-d1/pull/25 is merged due to 100kb of CJS bloat
 
 import {
-	CompiledQuery,
+	type CompiledQuery,
 	type DatabaseConnection,
 	type DatabaseIntrospector,
 	type Dialect,
 	type Driver,
-	Kysely,
+	type Kysely,
 	SqliteAdapter,
 	SqliteIntrospector,
 	SqliteQueryCompiler,
