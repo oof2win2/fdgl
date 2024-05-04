@@ -1,7 +1,6 @@
 import { jsonArrayFrom } from "kysely/helpers/sqlite";
 import type { ReportProof } from "../db-types";
-import type { ReportWithProofAndCategories } from "../types";
-import { BaseEndpoint } from "./base";
+import type { CustomEnv, ReportWithProofAndCategories } from "../types";
 import { generateId } from "../utils/generateId";
 
 const getExtensionForFiletype = (type: ReportProof["filetype"]): string => {
@@ -48,7 +47,9 @@ type ReportCreateData = {
 	proofRequestCount: number;
 };
 
-export class Reports extends BaseEndpoint {
+export class Reports {
+	constructor(protected env: CustomEnv) {}
+
 	/**
 	 * Get a single report by its ID
 	 * @param id ID of the report

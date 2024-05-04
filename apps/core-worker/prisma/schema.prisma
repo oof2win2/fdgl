@@ -69,3 +69,14 @@ model ReportProof {
 
     @@index([reportId])
 }
+
+model FilterObject {
+    id String @id
+
+    /// JSONB object of category filters
+    /// @kyselyType(JSONColumnType<Record<string, boolean>>)
+    filteredCategories  Bytes
+    /// JSONB object of community filters
+    /// @kyselyType(JSONColumnType<Record<string, boolean>>)
+    filteredCommunities Bytes
+}

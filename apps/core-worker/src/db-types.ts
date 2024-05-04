@@ -1,4 +1,4 @@
-import type { ColumnType } from "kysely";
+import type { ColumnType, JSONColumnType } from "kysely";
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 	? ColumnType<S, I | undefined, U>
 	: ColumnType<T, T | undefined, T>;
@@ -22,7 +22,33 @@ export type Communities = {
 	name: string;
 	contact: string;
 };
-export type Report = {
+export type FilterObject = {
+	id: string;
+	/**
+	 * JSONB object of category filters
+	 * @kyselyType(JSONColumnType<Record<string, boolean>>)
+	 */
+	filteredCategories: JSONColumnType<Record<string, boolean>>;
+	/**
+	 * JSONB object of community filters
+	 * @kyselyType(JSONColumnType<Record<string, boolean>>)
+	 */
+	filteredCommunities: JSONColumnType<Record<string, boolean>>;
+};
+export type ReportCategory = {
+	id: Generated<number>;
+	reportId: string;
+	categoryId: string;
+};
+export type ReportProof = {
+	proofId: string;
+	reportId: string;
+	/**
+	 * @kyselyType("image/jpeg" | "image/png")
+	 */
+	filetype: "image/jpeg" | "image/png";
+};
+export type Reports = {
 	id: string;
 	playername: string;
 	description: string | null;
@@ -41,24 +67,12 @@ export type Report = {
 	 */
 	updatedAt: Date;
 };
-export type ReportCategory = {
-	id: Generated<number>;
-	reportId: string;
-	categoryId: string;
-};
-export type ReportProof = {
-	proofId: string;
-	reportId: string;
-	/**
-	 * @kyselyType("image/jpeg" | "image/png")
-	 */
-	filetype: "image/jpeg" | "image/png";
-};
 export type DB = {
 	Authorization: Authorization;
 	Categories: Categories;
 	Communities: Communities;
-	Report: Report;
+	FilterObject: FilterObject;
 	ReportCategory: ReportCategory;
 	ReportProof: ReportProof;
+	Reports: Reports;
 };

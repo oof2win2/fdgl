@@ -1,5 +1,5 @@
-import { BaseEndpoint } from "./base";
 import { generateId } from "../utils/generateId";
+import type { CustomEnv } from "../types";
 
 type CreateCategoryParams = {
 	name: string;
@@ -12,7 +12,9 @@ type UpdateCategoryParams = {
 	description: string;
 };
 
-export class Categories extends BaseEndpoint {
+export class Categories {
+	constructor(protected env: CustomEnv) {}
+
 	/**
 	 * Get a single category by its ID
 	 * @param id ID of the category

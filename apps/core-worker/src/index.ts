@@ -50,7 +50,10 @@ export class FDGLService extends WorkerEntrypoint<Env> {
 			getCommunity: this.#communities.getCommunity.bind(this.#communities),
 			getAllCommunities: this.#communities.getAllCommunities.bind(this.#communities),
 			createCommunity: this.#communities.createCommunity.bind(this.#communities),
-			mergeCommunities: this.#communities.mergeCommunities.bind(this.#communities)
+			mergeCommunities: this.#communities.mergeCommunities.bind(this.#communities),
+			getFilterObject: this.#communities.getFilterObject.bind(this.#communities),
+			createFilterObject: this.#communities.createFilterObject.bind(this.#communities),
+			updateFilterObject: this.#communities.updateFilterObject.bind(this.#communities)
 		} satisfies ExtractMethods<Communities>;
 	}
 
