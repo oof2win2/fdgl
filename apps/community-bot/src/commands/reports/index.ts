@@ -1,6 +1,6 @@
-import { type CommandConfig } from "../../baseCommand";
-import { createHandler } from "../../utils/commands/handler";
-import { createRegister } from "../../utils/commands/register";
+import { type CommandConfig } from "@/utils/commands/baseCommand";
+import { createHandler } from "@/utils/commands/handler";
+import { createRegister } from "@/utils/commands/register";
 import CreateReport from "./create";
 import ListReports from "./list";
 

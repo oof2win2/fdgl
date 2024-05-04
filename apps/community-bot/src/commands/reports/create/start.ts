@@ -5,11 +5,11 @@ import {
 import type {
 	ChatInputCommandHandler,
 	CommandExecutionData,
-} from "../../../baseCommand";
-import { getFilterObject } from "../../../utils/getFilterObject";
-import { getStringOption } from "../../../utils/discord/getCommandOption";
+} from "../@/utils/commands/baseCommand";
+import { getFilterObject } from "@/utils/getFilterObject";
+import { getStringOption } from "@/utils/discord/getCommandOption";
 import { datePlus } from "itty-time";
-import type { CommandConfig } from "../../../utils/commands/types";
+import type { CommandConfig } from "@/utils/commands/types";
 
 const PLAYERNAME_OPTION_NAME = "playername";
 

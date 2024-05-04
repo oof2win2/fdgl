@@ -6,7 +6,7 @@ import {
 import {
 	CommandWithSubcommandsHandler,
 	type CommandConfig,
-} from "../../baseCommand";
+} from "@/utils/commands/baseCommand";
 import { ViewCategoryFiltersExecutionData } from "./viewCategories";
 import { AddCategoryFiltersExecutionData } from "./addCategory";
 import { RemoveCategoryFiltersExecutionData } from "./removeCategory";

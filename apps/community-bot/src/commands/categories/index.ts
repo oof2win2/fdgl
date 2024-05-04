@@ -1,8 +1,8 @@
-import { type CommandConfig } from "../../baseCommand";
+import { type CommandConfig } from "@/utils/commands/baseCommand";
 import List from "./list";
 import Search from "./search";
-import { createRegister } from "../../utils/commands/register";
-import { createHandler } from "../../utils/commands/handler";
+import { createRegister } from "@/utils/commands/register";
+import { createHandler } from "@/utils/commands/handler";
 
 const Config: CommandConfig = {
 	name: "categories",

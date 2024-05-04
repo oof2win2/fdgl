@@ -8,11 +8,11 @@ import type {
 	CommandConfig,
 	AutocompleteHandler,
 	ChatInputCommandHandler,
-} from "../../utils/commands/types";
+} from "@/utils/commands/types";
 import {
 	getFocusedInteractionOption,
 	getStringOption,
-} from "../../utils/discord/getCommandOption";
+} from "@/utils/discord/getCommandOption";
 import { stringSimilarity } from "string-similarity-js";
 
 const CATEGORY_OPTION_NAME = "category" as const;

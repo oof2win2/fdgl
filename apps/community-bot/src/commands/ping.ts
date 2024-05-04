@@ -1,9 +1,9 @@
 import {
 	type CommandConfig,
 	type ChatInputCommandHandler,
-} from "../baseCommand";
-import { createRegister } from "../utils/commands/register";
-import { createHandler } from "../utils/commands/handler";
+} from "@/utils/commands/baseCommand";
+import { createRegister } from "@/utils/commands/register";
+import { createHandler } from "@/utils/commands/handler";
 import { InteractionResponseType, MessageFlags } from "discord-api-types/v10";
 
 const Config: CommandConfig = {

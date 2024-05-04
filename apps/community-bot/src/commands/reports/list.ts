@@ -2,11 +2,11 @@ import {
 	ApplicationCommandOptionType,
 	InteractionResponseType,
 } from "discord-api-types/v10";
-import { getStringOption } from "../../utils/discord/getCommandOption";
+import { getStringOption } from "@/utils/discord/getCommandOption";
 import type {
 	CommandConfig,
 	ChatInputCommandHandler,
-} from "../../utils/commands/types";
+} from "@/utils/commands/types";
 
 const PLAYERNAME_OPTION_NAME = "playername";
 

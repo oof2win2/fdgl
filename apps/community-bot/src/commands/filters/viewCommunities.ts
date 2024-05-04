@@ -9,8 +9,8 @@ import type {
 	ChatInputCommandHandler,
 	CommandConfig,
 	CommandExecutionData,
-} from "../../baseCommand";
-import { getFilterObject } from "../../utils/getFilterObject";
+} from "@/utils/commands/baseCommand";
+import { getFilterObject } from "@/utils/getFilterObject";
 
 export const ViewCommunityFiltersConfig: CommandConfig = {
 	name: "view",

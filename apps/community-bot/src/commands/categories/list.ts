@@ -8,7 +8,7 @@ import {
 import type {
 	CommandConfig,
 	ChatInputCommandHandler,
-} from "../../utils/commands/types";
+} from "@/utils/commands/types";
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const categories = await env.FDGL.categories.getAllCategories();

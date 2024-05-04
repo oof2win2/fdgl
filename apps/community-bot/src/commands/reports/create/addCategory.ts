@@ -12,12 +12,12 @@ import type {
 	ChatInputCommandHandler,
 	CommandConfig,
 	CommandExecutionData,
-} from "../../../baseCommand";
-import { getFilterObject } from "../../../utils/getFilterObject";
+} from "../@/utils/commands/baseCommand";
+import { getFilterObject } from "@/utils/getFilterObject";
 import {
 	getFocusedInteractionOption,
 	getStringOption,
-} from "../../../utils/discord/getCommandOption";
+} from "@/utils/discord/getCommandOption";
 import { stringSimilarity } from "string-similarity-js";
 
 const CATEGORY_OPTION_NAME = "category" as const;

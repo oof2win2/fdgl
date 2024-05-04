@@ -1,17 +1,12 @@
 import {
 	ApplicationCommandOptionType,
-	ApplicationCommandType,
-	InteractionType,
 	type APIApplicationCommandAutocompleteInteraction,
 	type APIApplicationCommandAutocompleteResponse,
 	type APIApplicationCommandBasicOption,
-	type APIApplicationCommandInteraction,
-	type APIApplicationCommandOption,
 	type APIChatInputApplicationCommandInteraction,
-	type APIInteraction,
 	type APIInteractionResponse,
 } from "discord-api-types/v10";
-import type { CustomEnv } from "./types";
+import type { CustomEnv } from "../../types";
 
 export type ChatInputCommandHandler = (
 	interaction: APIChatInputApplicationCommandInteraction,

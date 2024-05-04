@@ -6,7 +6,7 @@ import {
 	type APIInteraction,
 	type APIInteractionResponse,
 } from "discord-api-types/v10";
-import { hexStringToUint8Array, verifyDiscordInteraction } from "./utils";
+import { hexStringToUint8Array, verifyDiscordInteraction } from "@/utils";
 import {
 	handleAutocompleteInteraction,
 	handleChatInputInteraction,
@@ -16,7 +16,7 @@ import { Kysely } from "kysely";
 import { D1Dialect } from "./kysely-d1";
 import { SerializePlugin } from "kysely-plugin-serialize";
 import type { DB } from "./db-types";
-import { pagedMessageHandler } from "./utils/discord/pagedMessageHandler";
+import { pagedMessageHandler } from "@/utils/discord/pagedMessageHandler";
 
 const encoder = new TextEncoder();
 

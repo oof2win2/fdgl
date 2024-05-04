@@ -1,4 +1,4 @@
-import type { SubcommandGroupConfig } from "../../../utils/commands/types";
+import type { SubcommandGroupConfig } from "@/utils/commands/types";
 import StartReportCreation from "./start";
 
 export const Config: SubcommandGroupConfig = {

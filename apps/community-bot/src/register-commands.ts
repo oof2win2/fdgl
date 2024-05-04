@@ -1,5 +1,5 @@
 import type { RESTPostAPIApplicationGuildCommandsJSONBody } from "discord-api-types/v10";
-import { commands } from "./baseCommand";
+import { commands } from "@/utils/commands/baseCommand";
 
 const config = Bun.TOML.parse(await Bun.file(".dev.vars").text());
 
