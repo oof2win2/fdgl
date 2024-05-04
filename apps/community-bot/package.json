@@ -1,24 +1,26 @@
 {
-  "name": "community-bot",
-  "module": "src/index.ts",
-  "type": "module",
-  "scripts": {
-    "dev": "wrangler dev",
-    "db:migrate": "bun run migrator.ts",
-    "db:apply": "wrangler d1 migrations apply fdgl-botdb"
-  },
-  "dependencies": {
-    "discord-api-types": "^0.37.79",
-    "kysely": "^0.27.3",
-    "kysely-plugin-serialize": "^0.6.0",
-    "string-similarity-js": "^2.1.4",
-    "valibot": "^0.28.1"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240208.0",
-    "@types/bun": "^1.0.5"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  }
+	"name": "community-bot",
+	"module": "src/index.ts",
+	"type": "module",
+	"scripts": {
+		"dev": "wrangler dev",
+		"db:migrate": "bun run migrator.ts",
+		"db:apply": "wrangler d1 migrations apply fdgl-botdb",
+		"register": "bun run src/register-commands.ts"
+	},
+	"dependencies": {
+		"discord-api-types": "^0.37.79",
+		"itty-time": "^1.0.6",
+		"kysely": "^0.27.3",
+		"kysely-plugin-serialize": "^0.6.0",
+		"string-similarity-js": "^2.1.4",
+		"valibot": "^0.28.1"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20240208.0",
+		"@types/bun": "^1.0.5"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	}
 }

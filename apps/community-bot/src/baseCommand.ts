@@ -80,7 +80,6 @@ export const CommandWithSubcommandsHandler = (
 			}
 			if (option.type === ApplicationCommandOptionType.SubcommandGroup) {
 				const commandName = option.options[0].name;
-				console.log(option.name, commandName, subcommands);
 				const cmd = subcommands.find(
 					(c) =>
 						c.config.group === option.name && c.config.name === commandName,

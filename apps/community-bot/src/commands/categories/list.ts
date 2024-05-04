@@ -4,18 +4,11 @@ import {
 	InteractionResponseType,
 	MessageFlags,
 	type APIEmbed,
-	type RESTPostAPIApplicationGuildCommandsJSONBody,
 } from "discord-api-types/v10";
 import type {
-	ChatInputCommandHandler,
 	CommandConfig,
-	CommandExecutionData,
-} from "../../baseCommand";
-
-export const ListCategoriesConfig: CommandConfig = {
-	name: "list",
-	description: "List all categories present in FDGL",
-};
+	ChatInputCommandHandler,
+} from "../../utils/commands/types";
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const categories = await env.FDGL.categories.getAllCategories();
@@ -78,9 +71,11 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 	};
 };
 
-export const ListCategoriesExecutionData: CommandExecutionData = {
-	config: ListCategoriesConfig,
+const Config: CommandConfig = {
+	name: "list",
+	description: "List all categories present in FDGL",
 	ChatInputHandler: handler,
+	type: "Command",
 };
 
-export default ListCategoriesConfig;
+export default Config;

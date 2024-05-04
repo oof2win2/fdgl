@@ -5,11 +5,10 @@ import {
 	type APIEmbed,
 } from "discord-api-types/v10";
 import type {
+	CommandConfig,
 	AutocompleteHandler,
 	ChatInputCommandHandler,
-	CommandConfig,
-	CommandExecutionData,
-} from "../../baseCommand";
+} from "../../utils/commands/types";
 import {
 	getFocusedInteractionOption,
 	getStringOption,
@@ -17,20 +16,6 @@ import {
 import { stringSimilarity } from "string-similarity-js";
 
 const COMMUNITY_OPTION_NAME = "community" as const;
-
-export const SearchCommunitiesConfig: CommandConfig = {
-	name: "search",
-	description: "Search through communities present in FDGL",
-	options: [
-		{
-			type: ApplicationCommandOptionType.String,
-			name: COMMUNITY_OPTION_NAME,
-			description: "Name of the community",
-			autocomplete: true,
-			required: true,
-		},
-	],
-};
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const id = getStringOption(
@@ -91,10 +76,21 @@ const autocomplete: AutocompleteHandler = async (interaction, env) => {
 	};
 };
 
-export const SearchCommunitiesExecutionData: CommandExecutionData = {
-	config: SearchCommunitiesConfig,
+const Config: CommandConfig = {
+	name: "search",
+	description: "Search through communities present in FDGL",
+	type: "Command",
+	options: [
+		{
+			type: ApplicationCommandOptionType.String,
+			name: COMMUNITY_OPTION_NAME,
+			description: "Name of the community",
+			autocomplete: true,
+			required: true,
+		},
+	],
 	ChatInputHandler: handler,
 	AutocompleteHandler: autocomplete,
 };
 
-export default SearchCommunitiesConfig;
+export default Config;

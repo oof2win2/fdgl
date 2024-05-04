@@ -1,42 +1,26 @@
-import {
-	type RESTPostAPIApplicationGuildCommandsJSONBody,
-	ApplicationCommandType,
-	ApplicationCommandOptionType,
-} from "discord-api-types/v10";
-import {
-	CommandWithSubcommandsHandler,
-	type CommandConfig,
-} from "../../baseCommand";
-import { ListCommunitiesExecutionData } from "./list";
-import { SearchCommunitiesExecutionData } from "./search";
+import { type CommandConfig } from "../../baseCommand";
+import List from "./list";
+import Search from "./search";
+import { createRegister } from "../../utils/commands/register";
+import { createHandler } from "../../utils/commands/handler";
 
 const Config: CommandConfig = {
 	name: "communities",
 	description: "Interact with FDGL communities",
 };
 
-export const ExecutionData = CommandWithSubcommandsHandler(
-	[ListCommunitiesExecutionData, SearchCommunitiesExecutionData],
-	Config,
-);
-
-export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
-	type: ApplicationCommandType.ChatInput,
+export const Register = createRegister({
 	name: Config.name,
 	description: Config.description,
-	options: [
-		{
-			type: ApplicationCommandOptionType.Subcommand,
-			name: ListCommunitiesExecutionData.config.name,
-			description: ListCommunitiesExecutionData.config.description,
-		},
-		{
-			type: ApplicationCommandOptionType.Subcommand,
-			name: SearchCommunitiesExecutionData.config.name,
-			description: SearchCommunitiesExecutionData.config.description,
-			options: SearchCommunitiesExecutionData.config.options,
-		},
-	],
-};
+	type: "CommandWithSubcommands",
+	subcommands: [List, Search],
+});
 
-export default Config;
+const Handler = createHandler({
+	name: Config.name,
+	description: Config.description,
+	type: "CommandWithSubcommands",
+	subcommands: [List, Search],
+});
+
+export default Handler;

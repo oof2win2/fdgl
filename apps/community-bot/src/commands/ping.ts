@@ -1,21 +1,17 @@
 import {
-	ApplicationCommandType,
-	InteractionResponseType,
-	MessageFlags,
-	type RESTPostAPIApplicationGuildCommandsJSONBody,
-} from "discord-api-types/v10";
-import type {
-	ChatInputCommandHandler,
-	CommandExecutionData,
-	CommandConfig,
+	type CommandConfig,
+	type ChatInputCommandHandler,
 } from "../baseCommand";
+import { createRegister } from "../utils/commands/register";
+import { createHandler } from "../utils/commands/handler";
+import { InteractionResponseType, MessageFlags } from "discord-api-types/v10";
 
 const Config: CommandConfig = {
 	name: "ping",
 	description: "Ping the bot",
 };
 
-const Handler: ChatInputCommandHandler = async () => {
+const handler: ChatInputCommandHandler = async () => {
 	return {
 		type: InteractionResponseType.ChannelMessageWithSource,
 		data: {
@@ -25,15 +21,18 @@ const Handler: ChatInputCommandHandler = async () => {
 	};
 };
 
-export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
-	type: ApplicationCommandType.ChatInput,
+export const Register = createRegister({
 	name: Config.name,
 	description: Config.description,
-};
+	type: "Command",
+	ChatInputHandler: handler,
+});
 
-export const ExecutionData: CommandExecutionData = {
-	ChatInputHandler: Handler,
-	config: Config,
-};
+const Handler = createHandler({
+	name: Config.name,
+	description: Config.description,
+	type: "Command",
+	ChatInputHandler: handler,
+});
 
-export default Config;
+export default Handler;

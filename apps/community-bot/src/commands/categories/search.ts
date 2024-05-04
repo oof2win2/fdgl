@@ -5,11 +5,10 @@ import {
 	type APIEmbed,
 } from "discord-api-types/v10";
 import type {
+	CommandConfig,
 	AutocompleteHandler,
 	ChatInputCommandHandler,
-	CommandConfig,
-	CommandExecutionData,
-} from "../../baseCommand";
+} from "../../utils/commands/types";
 import {
 	getFocusedInteractionOption,
 	getStringOption,
@@ -17,20 +16,6 @@ import {
 import { stringSimilarity } from "string-similarity-js";
 
 const CATEGORY_OPTION_NAME = "category" as const;
-
-export const SearchCategoriesConfig: CommandConfig = {
-	name: "search",
-	description: "Search through categories present in FDGL",
-	options: [
-		{
-			type: ApplicationCommandOptionType.String,
-			name: CATEGORY_OPTION_NAME,
-			description: "Name of the category",
-			autocomplete: true,
-			required: true,
-		},
-	],
-};
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const id = getStringOption(
@@ -72,7 +57,6 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 
 const autocomplete: AutocompleteHandler = async (interaction, env) => {
 	const categories = await env.FDGL.categories.getAllCategories();
-	console.log(interaction.data.options);
 	const focused = getFocusedInteractionOption(
 		interaction.data.options,
 		ApplicationCommandOptionType.String,
@@ -92,10 +76,21 @@ const autocomplete: AutocompleteHandler = async (interaction, env) => {
 	};
 };
 
-export const SearchCategoriesExecutionData: CommandExecutionData = {
-	config: SearchCategoriesConfig,
+const Config: CommandConfig = {
+	name: "search",
+	description: "Search through categories present in FDGL",
+	options: [
+		{
+			type: ApplicationCommandOptionType.String,
+			name: CATEGORY_OPTION_NAME,
+			description: "Name of the category",
+			autocomplete: true,
+			required: true,
+		},
+	],
+	type: "Command",
 	ChatInputHandler: handler,
 	AutocompleteHandler: autocomplete,
 };
 
-export default SearchCategoriesConfig;
+export default Config;
