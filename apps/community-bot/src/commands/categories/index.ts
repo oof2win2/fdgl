@@ -12,7 +12,7 @@ import { SearchCategoriesExecutionData } from "./search";
 
 const Config: CommandConfig = {
 	name: "categories",
-	description: "", // we have subcommands so this is empty
+	description: "Interact with FDGL categories",
 };
 
 export const ExecutionData = CommandWithSubcommandsHandler(
@@ -34,15 +34,7 @@ export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
 			type: ApplicationCommandOptionType.Subcommand,
 			name: SearchCategoriesExecutionData.config.name,
 			description: SearchCategoriesExecutionData.config.description,
-			options: [
-				{
-					type: ApplicationCommandOptionType.String,
-					name: "category",
-					description: "Name of the category",
-					autocomplete: true,
-					required: true,
-				},
-			],
+			options: SearchCategoriesExecutionData.config.options,
 		},
 	],
 };

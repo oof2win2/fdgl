@@ -8,14 +8,14 @@ import {
 } from "discord-api-types/v10";
 import type {
 	ChatInputCommandHandler,
+	CommandConfig,
 	CommandExecutionData,
 } from "../../baseCommand";
 
-export const ListCommunitiesConfig: RESTPostAPIApplicationGuildCommandsJSONBody =
-	{
-		name: "list",
-		description: "List all communities present in FDGL",
-	};
+export const ListCommunitiesConfig: CommandConfig = {
+	name: "list",
+	description: "List all communities present in FDGL",
+};
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const communities = await env.FDGL.communities.getAllCommunities();

@@ -4,7 +4,9 @@ import {
 	InteractionType,
 	type APIApplicationCommandAutocompleteInteraction,
 	type APIApplicationCommandAutocompleteResponse,
+	type APIApplicationCommandBasicOption,
 	type APIApplicationCommandInteraction,
+	type APIApplicationCommandOption,
 	type APIChatInputApplicationCommandInteraction,
 	type APIInteraction,
 	type APIInteractionResponse,
@@ -23,7 +25,9 @@ export type AutocompleteHandler = (
 
 export type CommandConfig = {
 	name: string;
+	group?: string;
 	description: string;
+	options?: APIApplicationCommandBasicOption[];
 };
 
 export type CommandExecutionData = {
@@ -32,9 +36,7 @@ export type CommandExecutionData = {
 	config: CommandConfig;
 };
 
-export const commands = ["ping", "categories", "communities"];
-
-// TODO: fix the typings
+export const commands = ["ping", "categories", "communities", "filters"];
 
 export const CommandWithSubcommandsHandler = (
 	subcommands: CommandExecutionData[],
@@ -43,46 +45,54 @@ export const CommandWithSubcommandsHandler = (
 	return {
 		ChatInputHandler: (interaction, env) => {
 			const options = interaction.data.options ?? [];
-			const subcommand = options.find(
-				(o) =>
-					o.type === ApplicationCommandOptionType.Subcommand ||
-					o.type === ApplicationCommandOptionType.SubcommandGroup,
-			);
-			if (!subcommand) throw new Error("subcommand not found");
-			if (
-				subcommand.type !== ApplicationCommandOptionType.Subcommand &&
-				subcommand.type !== ApplicationCommandOptionType.SubcommandGroup
-			)
-				throw new Error("subcommand not found");
-
-			const sub = subcommands.find((s) => s.config.name === subcommand.name);
-			// we propagate the options
-			interaction.data.options = subcommand.options;
-			if (!sub) throw new Error("subcommand not found");
-			return sub.ChatInputHandler(interaction, env);
+			const option = options[0];
+			if (option.type === ApplicationCommandOptionType.Subcommand) {
+				const cmd = subcommands.find((c) => c.config.name === option.name);
+				if (!cmd) throw new Error("Subcommand not found");
+				// biome-ignore lint/style/noNonNullAssertion: the options will be there as it is a subcommand
+				interaction.data.options = option.options!;
+				return cmd.ChatInputHandler(interaction, env);
+			}
+			if (option.type === ApplicationCommandOptionType.SubcommandGroup) {
+				const commandName = option.options[0].name;
+				const cmd = subcommands.find(
+					(c) =>
+						c.config.group === option.name && c.config.name === commandName,
+				);
+				if (!cmd) throw new Error("Subcommand not found");
+				// biome-ignore lint/style/noNonNullAssertion: the options will be there as it is a subcommand group
+				interaction.data.options = option.options[0].options!;
+				return cmd.ChatInputHandler(interaction, env);
+			}
+			throw new Error("Command not handled");
 		},
 		AutocompleteHandler: (interaction, env) => {
 			const options = interaction.data.options ?? [];
-			const subcommand = options.find(
-				(o) =>
-					o.type === ApplicationCommandOptionType.Subcommand ||
-					o.type === ApplicationCommandOptionType.SubcommandGroup,
-			);
-			if (!subcommand) throw new Error("subcommand not found");
-			if (
-				subcommand.type !== ApplicationCommandOptionType.Subcommand &&
-				subcommand.type !== ApplicationCommandOptionType.SubcommandGroup
-			)
-				throw new Error("subcommand not found");
-			if (!subcommand.options) throw new Error("no options");
-
-			const sub = subcommands.find((s) => s.config.name === subcommand.name);
-			// we propagate the options
-			interaction.data.options = subcommand.options;
-			if (!sub) throw new Error("subcommand not found");
-			if (!sub.AutocompleteHandler)
-				throw new Error("subcommand doesn't support autocomplete");
-			return sub.AutocompleteHandler(interaction, env);
+			const option = options[0];
+			if (option.type === ApplicationCommandOptionType.Subcommand) {
+				const cmd = subcommands.find((c) => c.config.name === option.name);
+				if (!cmd) throw new Error("Subcommand not found");
+				if (!cmd.AutocompleteHandler)
+					throw new Error("Subcommand doesn't have an autocomplete handler");
+				// biome-ignore lint/style/noNonNullAssertion: the options will be there as it is a subcommand
+				interaction.data.options = option.options!;
+				return cmd.AutocompleteHandler(interaction, env);
+			}
+			if (option.type === ApplicationCommandOptionType.SubcommandGroup) {
+				const commandName = option.options[0].name;
+				console.log(option.name, commandName, subcommands);
+				const cmd = subcommands.find(
+					(c) =>
+						c.config.group === option.name && c.config.name === commandName,
+				);
+				if (!cmd) throw new Error("Subcommand not found");
+				if (!cmd.AutocompleteHandler)
+					throw new Error("Subcommand doesn't have an autocomplete handler");
+				// biome-ignore lint/style/noNonNullAssertion: the options will be there as it is a subcommand group
+				interaction.data.options = option.options[0].options!;
+				return cmd.AutocompleteHandler(interaction, env);
+			}
+			throw new Error("Command not handled");
 		},
 		config,
 	};

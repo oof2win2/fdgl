@@ -12,7 +12,7 @@ import { SearchCommunitiesExecutionData } from "./search";
 
 const Config: CommandConfig = {
 	name: "communities",
-	description: "", // we have subcommands so this is empty
+	description: "Interact with FDGL communities",
 };
 
 export const ExecutionData = CommandWithSubcommandsHandler(
@@ -34,15 +34,7 @@ export const Register: RESTPostAPIApplicationGuildCommandsJSONBody = {
 			type: ApplicationCommandOptionType.Subcommand,
 			name: SearchCommunitiesExecutionData.config.name,
 			description: SearchCommunitiesExecutionData.config.description,
-			options: [
-				{
-					type: ApplicationCommandOptionType.String,
-					name: "community",
-					description: "Name of the community",
-					autocomplete: true,
-					required: true,
-				},
-			],
+			options: SearchCommunitiesExecutionData.config.options,
 		},
 	],
 };

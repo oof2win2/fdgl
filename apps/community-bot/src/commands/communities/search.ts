@@ -16,13 +16,28 @@ import {
 } from "../../utils/discord/getCommandOption";
 import { stringSimilarity } from "string-similarity-js";
 
+const COMMUNITY_OPTION_NAME = "community" as const;
+
 export const SearchCommunitiesConfig: CommandConfig = {
 	name: "search",
 	description: "Search through communities present in FDGL",
+	options: [
+		{
+			type: ApplicationCommandOptionType.String,
+			name: COMMUNITY_OPTION_NAME,
+			description: "Name of the community",
+			autocomplete: true,
+			required: true,
+		},
+	],
 };
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
-	const id = getStringOption(interaction.data.options, "community", true);
+	const id = getStringOption(
+		interaction.data.options,
+		COMMUNITY_OPTION_NAME,
+		true,
+	);
 	const community = await env.FDGL.communities.getCommunity(id);
 
 	if (!community)
@@ -68,7 +83,6 @@ const autocomplete: AutocompleteHandler = async (interaction, env) => {
 			sim: focused ? stringSimilarity(c.name, focused.value) : 0,
 		}))
 		.sort((a, b) => b.sim - a.sim);
-	console.log(sortedBySimilarity);
 	return {
 		type: InteractionResponseType.ApplicationCommandAutocompleteResult,
 		data: {

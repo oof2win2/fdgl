@@ -1,12 +1,26 @@
-import type { APIEmbedField } from "discord-api-types/v10";
+import type { ColumnType } from "kysely";
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
+export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-export interface PagedData {
-	id: string;
-	data: APIEmbedField[];
-	currentPage: number;
-	expiresAt: Date;
-}
-
-export interface DB {
-	PagedData: PagedData;
-}
+export type GuildConfig = {
+    id: string;
+    filterObjectId: string | null;
+};
+export type PagedData = {
+    id: string;
+    /**
+     * @kyselyType(APIEmbedField[])
+     */
+    data: APIEmbedField[];
+    currentPage: number;
+    /**
+     * @kyselyType(Date)
+     */
+    expiresAt: Date;
+};
+export type DB = {
+    GuildConfig: GuildConfig;
+    PagedData: PagedData;
+};

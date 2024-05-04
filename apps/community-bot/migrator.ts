@@ -4,7 +4,7 @@ import { $ } from "bun";
 const dbBinding = "fdgl-botdb"; // change this, make it reflect the binding you have in your wrangler.toml
 
 const sqlSchema =
-	await $`bun prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script`.text();
+	await $`bun prisma migrate diff --from-local-d1 --to-schema-datamodel ./prisma/schema.prisma --script`.text();
 
 if (sqlSchema.trim() === "-- This is an empty migration.") {
 	console.log("No changes have been made in the Prisma schema");

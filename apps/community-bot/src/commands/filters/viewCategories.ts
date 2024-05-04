@@ -2,44 +2,54 @@ import {
 	ButtonStyle,
 	ComponentType,
 	InteractionResponseType,
-	MessageFlags,
 	type APIEmbed,
-	type RESTPostAPIApplicationGuildCommandsJSONBody,
+	type APIEmbedField,
 } from "discord-api-types/v10";
 import type {
 	ChatInputCommandHandler,
 	CommandConfig,
 	CommandExecutionData,
 } from "../../baseCommand";
+import { getFilterObject } from "../../utils/getFilterObject";
 
-export const ListCategoriesConfig: CommandConfig = {
-	name: "list",
-	description: "List all categories present in FDGL",
+export const ViewCategoryFiltersConfig: CommandConfig = {
+	name: "view",
+	group: "categories",
+	description: "View categories present in your filters",
 };
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
-	const categories = await env.FDGL.categories.getAllCategories();
-
-	if (!categories.length)
+	const guildId = interaction.guild_id;
+	if (!guildId)
 		return {
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: "There are currently no categories in the FDGL system",
-				flags: MessageFlags.Ephemeral,
+				content: "This command must be ran in a guild",
 			},
 		};
 
-	const embed: APIEmbed = {};
-	embed.title = "FDGL Categories";
-	embed.description = "All Categories within the FDGL system";
-
-	const fields = categories.map((category) => {
+	const filterObject = await getFilterObject(guildId, env);
+	if (filterObject.filteredCategories.length === 0) {
 		return {
-			name: `${category.name} (\`${category.id}\`)`,
+			type: InteractionResponseType.ChannelMessageWithSource,
+			data: {
+				content: "You don't have any category filters set",
+			},
+		};
+	}
+	const categories = await env.FDGL.categories.getAllCategories();
+
+	const embed: APIEmbed = {};
+	embed.title = "FDGL Filtered Categories";
+	embed.description = "List of all categories in this guild's filters";
+	const fields: APIEmbedField[] = filterObject.filteredCategories.map((id) => {
+		// biome-ignore lint/style/noNonNullAssertion: The category must exist in the filter object
+		const category = categories.find((c) => c.id === id)!;
+		return {
+			name: category.name,
 			value: category.description,
 		};
 	});
-
 	embed.fields = fields.slice(0, 10);
 
 	await env.DB.insertInto("PagedData")
@@ -78,9 +88,9 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 	};
 };
 
-export const ListCategoriesExecutionData: CommandExecutionData = {
-	config: ListCategoriesConfig,
+export const ViewCategoryFiltersExecutionData: CommandExecutionData = {
+	config: ViewCategoryFiltersConfig,
 	ChatInputHandler: handler,
 };
 
-export default ListCategoriesConfig;
+export default ViewCategoryFiltersConfig;
