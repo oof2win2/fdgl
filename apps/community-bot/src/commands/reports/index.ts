@@ -1,10 +1,8 @@
-import { type CommandConfig } from "@/utils/commands/baseCommand";
-import { createHandler } from "@/utils/commands/handler";
-import { createRegister } from "@/utils/commands/register";
+import { createHandler, createRegister } from "@/utils/commands";
 import CreateReport from "./create";
 import ListReports from "./list";
 
-const Config: CommandConfig = {
+const Config = {
 	name: "reports",
 	description: "Interact with FDGL reports",
 };

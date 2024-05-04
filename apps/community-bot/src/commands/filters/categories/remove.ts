@@ -11,8 +11,7 @@ import type {
 	AutocompleteHandler,
 	ChatInputCommandHandler,
 	CommandConfig,
-	CommandExecutionData,
-} from "@/utils/commands/baseCommand";
+} from "@/utils/commands";
 import { getFilterObject } from "@/utils/getFilterObject";
 import {
 	getFocusedInteractionOption,
@@ -20,22 +19,7 @@ import {
 } from "@/utils/discord/getCommandOption";
 import { stringSimilarity } from "string-similarity-js";
 
-const COMMUNITY_OPTION_NAME = "community" as const;
-
-export const RemoveCommunityFiltersConfig: CommandConfig = {
-	name: "remove",
-	group: "communities",
-	description: "Remove a community from your filters",
-	options: [
-		{
-			type: ApplicationCommandOptionType.String,
-			name: COMMUNITY_OPTION_NAME,
-			description: "Name of the community",
-			autocomplete: true,
-			required: true,
-		},
-	],
-};
+const CATEGORY_OPTION_NAME = "category" as const;
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const guildId = interaction.guild_id;
@@ -51,51 +35,51 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 
 	const id = getStringOption(
 		interaction.data.options,
-		COMMUNITY_OPTION_NAME,
+		CATEGORY_OPTION_NAME,
 		true,
 	);
-	if (!filterObject.filteredCommunities.includes(id)) {
+	if (!filterObject.filteredCategories.includes(id)) {
 		return {
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: "This community is not in your filters",
+				content: "This category is not in your filters",
 			},
 		};
 	}
-	const community = await env.FDGL.communities.getCommunity(id);
+	const category = await env.FDGL.categories.getCategory(id);
 
-	if (!community)
+	if (!category)
 		return {
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: "The community could not be found",
+				content: "The category could not be found",
 			},
 		};
-	const newFilters = filterObject.filteredCommunities.filter(
-		(id) => id !== community.id,
+	const newFilters = filterObject.filteredCategories.filter(
+		(id) => id !== category.id,
 	);
 
 	await env.FDGL.communities.updateFilterObject(
 		filterObject.id,
+		filterObject.filteredCommunities,
 		newFilters,
-		filterObject.filteredCategories,
 	);
 
 	return {
 		type: InteractionResponseType.ChannelMessageWithSource,
 		data: {
-			content: `The community "${community.name}" was removed from your filters`,
+			content: `The category "${category.name}" was removed from your filters`,
 		},
 	};
 };
 
 const autocomplete: AutocompleteHandler = async (interaction, env) => {
-	const communities = await env.FDGL.communities.getAllCommunities();
+	const categories = await env.FDGL.categories.getAllCategories();
 	const focused = getFocusedInteractionOption(
 		interaction.data.options,
 		ApplicationCommandOptionType.String,
 	);
-	const sortedBySimilarity = communities
+	const sortedBySimilarity = categories
 		.map((c) => ({
 			name: c.name,
 			value: c.id,
@@ -110,10 +94,21 @@ const autocomplete: AutocompleteHandler = async (interaction, env) => {
 	};
 };
 
-export const RemoveCommunityFiltersExecutionData: CommandExecutionData = {
-	config: RemoveCommunityFiltersConfig,
+const Config: CommandConfig = {
+	name: "remove",
+	description: "Remove a category from your filters",
+	type: "Command",
+	options: [
+		{
+			type: ApplicationCommandOptionType.String,
+			name: CATEGORY_OPTION_NAME,
+			description: "Name of the category",
+			autocomplete: true,
+			required: true,
+		},
+	],
 	ChatInputHandler: handler,
 	AutocompleteHandler: autocomplete,
 };
 
-export default RemoveCommunityFiltersConfig;
+export default Config;

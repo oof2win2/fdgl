@@ -11,8 +11,7 @@ import type {
 	AutocompleteHandler,
 	ChatInputCommandHandler,
 	CommandConfig,
-	CommandExecutionData,
-} from "@/utils/commands/baseCommand";
+} from "@/utils/commands";
 import { getFilterObject } from "@/utils/getFilterObject";
 import {
 	getFocusedInteractionOption,
@@ -20,22 +19,7 @@ import {
 } from "@/utils/discord/getCommandOption";
 import { stringSimilarity } from "string-similarity-js";
 
-const COMMUNITY_OPTION_NAME = "community" as const;
-
-export const AddCommunityFiltersConfig: CommandConfig = {
-	name: "add",
-	group: "communities",
-	description: "Add a community to your filters",
-	options: [
-		{
-			type: ApplicationCommandOptionType.String,
-			name: COMMUNITY_OPTION_NAME,
-			description: "Name of the community",
-			autocomplete: true,
-			required: true,
-		},
-	],
-};
+const CATEGORY_OPTION_NAME = "category" as const;
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const guildId = interaction.guild_id;
@@ -51,48 +35,48 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 
 	const id = getStringOption(
 		interaction.data.options,
-		COMMUNITY_OPTION_NAME,
+		CATEGORY_OPTION_NAME,
 		true,
 	);
-	if (filterObject.filteredCommunities.includes(id)) {
+	if (filterObject.filteredCategories.includes(id)) {
 		return {
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: "This community is already present in your filters",
+				content: "This category is already present in your filters",
 			},
 		};
 	}
-	const community = await env.FDGL.communities.getCommunity(id);
+	const category = await env.FDGL.categories.getCategory(id);
 
-	if (!community)
+	if (!category)
 		return {
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: "The community could not be found",
+				content: "The category could not be found",
 			},
 		};
 
 	await env.FDGL.communities.updateFilterObject(
 		filterObject.id,
-		[...filterObject.filteredCommunities, community.id],
-		filterObject.filteredCategories,
+		filterObject.filteredCommunities,
+		[...filterObject.filteredCategories, category.id],
 	);
 
 	return {
 		type: InteractionResponseType.ChannelMessageWithSource,
 		data: {
-			content: `The community "${community.name}" was added to your filters`,
+			content: `The category "${category.name}" was added to your filters`,
 		},
 	};
 };
 
 const autocomplete: AutocompleteHandler = async (interaction, env) => {
-	const communities = await env.FDGL.communities.getAllCommunities();
+	const categories = await env.FDGL.categories.getAllCategories();
 	const focused = getFocusedInteractionOption(
 		interaction.data.options,
 		ApplicationCommandOptionType.String,
 	);
-	const sortedBySimilarity = communities
+	const sortedBySimilarity = categories
 		.map((c) => ({
 			name: c.name,
 			value: c.id,
@@ -107,10 +91,21 @@ const autocomplete: AutocompleteHandler = async (interaction, env) => {
 	};
 };
 
-export const AddCommunityFiltersExecutionData: CommandExecutionData = {
-	config: AddCommunityFiltersConfig,
+const Config: CommandConfig = {
+	name: "add",
+	description: "Add a category to your filters",
+	type: "Command",
+	options: [
+		{
+			type: ApplicationCommandOptionType.String,
+			name: CATEGORY_OPTION_NAME,
+			description: "Name of the category",
+			autocomplete: true,
+			required: true,
+		},
+	],
 	ChatInputHandler: handler,
 	AutocompleteHandler: autocomplete,
 };
 
-export default AddCommunityFiltersConfig;
+export default Config;

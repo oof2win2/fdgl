@@ -1,3 +1,8 @@
+/**
+ * This file is quite a mess and a bunch of spaghetti. It is done right and works.
+ * However, it could definitely use some cleanup.
+ */
+
 import { ApplicationCommandOptionType } from "discord-api-types/v10";
 import type {
 	Command,
@@ -64,6 +69,7 @@ function commandWithSubcommandGroupsHandler(
 				const cmd = group.subcommands.find((c) => c.name === cmdName);
 				if (!cmd) throw new Error("Subcommand not found");
 
+				// biome-ignore lint/style/noNonNullAssertion: the options will be there as it is a subcommand
 				interaction.data.options = groupOption.options!;
 				if (!cmd.AutocompleteHandler)
 					throw new Error(

@@ -5,7 +5,7 @@ import type {
 import Ping from "./ping";
 import Categories from "./categories";
 import Communities from "./communities";
-import { ExecutionData as Filters } from "./filters";
+import Filters from "./filters";
 import Reports from "./reports";
 import type { CustomEnv } from "../types";
 
@@ -20,7 +20,7 @@ export async function handleChatInputInteraction(
 			return await Categories.ChatInputHandler(interaction, env);
 		case Communities.name:
 			return await Communities.ChatInputHandler(interaction, env);
-		case Filters.config.name:
+		case Filters.name:
 			return await Filters.ChatInputHandler(interaction, env);
 		case Reports.name:
 			return await Reports.ChatInputHandler(interaction, env);
@@ -42,7 +42,7 @@ export async function handleAutocompleteInteraction(
 			if (!Communities.AutocompleteHandler)
 				throw new Error("Communities don't have an autocomplete handler");
 			return await Communities.AutocompleteHandler(interaction, env);
-		case Filters.config.name:
+		case Filters.name:
 			if (!Filters.AutocompleteHandler)
 				throw new Error("Filters don't have an autocomplete handler");
 			return await Filters.AutocompleteHandler(interaction, env);

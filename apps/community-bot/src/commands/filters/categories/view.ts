@@ -5,18 +5,8 @@ import {
 	type APIEmbed,
 	type APIEmbedField,
 } from "discord-api-types/v10";
-import type {
-	ChatInputCommandHandler,
-	CommandConfig,
-	CommandExecutionData,
-} from "@/utils/commands/baseCommand";
+import type { ChatInputCommandHandler, CommandConfig } from "@/utils/commands";
 import { getFilterObject } from "@/utils/getFilterObject";
-
-export const ViewCommunityFiltersConfig: CommandConfig = {
-	name: "view",
-	group: "communities",
-	description: "View communities present in your filters",
-};
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const guildId = interaction.guild_id;
@@ -29,25 +19,25 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 		};
 
 	const filterObject = await getFilterObject(guildId, env);
-	if (filterObject.filteredCommunities.length === 0) {
+	if (filterObject.filteredCategories.length === 0) {
 		return {
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: "You don't have any community filters set",
+				content: "You don't have any category filters set",
 			},
 		};
 	}
-	const communities = await env.FDGL.communities.getAllCommunities();
+	const categories = await env.FDGL.categories.getAllCategories();
 
 	const embed: APIEmbed = {};
-	embed.title = "FDGL Filtered Communities";
-	embed.description = "List of all communities in this guild's filters";
+	embed.title = "FDGL Filtered Categories";
+	embed.description = "List of all categories in this guild's filters";
 	const fields: APIEmbedField[] = filterObject.filteredCategories.map((id) => {
-		// biome-ignore lint/style/noNonNullAssertion: The community must exist in the filter object
-		const community = communities.find((c) => c.id === id)!;
+		// biome-ignore lint/style/noNonNullAssertion: The category must exist in the filter object
+		const category = categories.find((c) => c.id === id)!;
 		return {
-			name: community.name,
-			value: `Contact: ${community.contact}`,
+			name: category.name,
+			value: category.description,
 		};
 	});
 	embed.fields = fields.slice(0, 10);
@@ -88,9 +78,11 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 	};
 };
 
-export const ViewCommunityFiltersExecutionData: CommandExecutionData = {
-	config: ViewCommunityFiltersConfig,
+const Config: CommandConfig = {
+	name: "view",
+	description: "View categories present in your filters",
+	type: "Command",
 	ChatInputHandler: handler,
 };
 
-export default ViewCommunityFiltersConfig;
+export default Config;

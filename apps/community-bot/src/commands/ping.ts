@@ -1,12 +1,11 @@
 import {
-	type CommandConfig,
+	createRegister,
+	createHandler,
 	type ChatInputCommandHandler,
-} from "@/utils/commands/baseCommand";
-import { createRegister } from "@/utils/commands/register";
-import { createHandler } from "@/utils/commands/handler";
+} from "@/utils/commands";
 import { InteractionResponseType, MessageFlags } from "discord-api-types/v10";
 
-const Config: CommandConfig = {
+const Config = {
 	name: "ping",
 	description: "Ping the bot",
 };

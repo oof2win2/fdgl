@@ -8,7 +8,7 @@ import type {
 	CommandConfig,
 	AutocompleteHandler,
 	ChatInputCommandHandler,
-} from "@/utils/commands/types";
+} from "@/utils/commands";
 import {
 	getFocusedInteractionOption,
 	getStringOption,

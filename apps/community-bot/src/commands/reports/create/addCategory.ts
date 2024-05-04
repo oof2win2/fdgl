@@ -11,8 +11,7 @@ import type {
 	AutocompleteHandler,
 	ChatInputCommandHandler,
 	CommandConfig,
-	CommandExecutionData,
-} from "../@/utils/commands/baseCommand";
+} from "@/utils/commands";
 import { getFilterObject } from "@/utils/getFilterObject";
 import {
 	getFocusedInteractionOption,
@@ -21,21 +20,6 @@ import {
 import { stringSimilarity } from "string-similarity-js";
 
 const CATEGORY_OPTION_NAME = "category" as const;
-
-export const AddCategoryFiltersConfig: CommandConfig = {
-	name: "add",
-	group: "categories",
-	description: "Add a category to your filters",
-	options: [
-		{
-			type: ApplicationCommandOptionType.String,
-			name: CATEGORY_OPTION_NAME,
-			description: "Name of the category",
-			autocomplete: true,
-			required: true,
-		},
-	],
-};
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const guildId = interaction.guild_id;
@@ -107,10 +91,19 @@ const autocomplete: AutocompleteHandler = async (interaction, env) => {
 	};
 };
 
-export const AddCategoryFiltersExecutionData: CommandExecutionData = {
-	config: AddCategoryFiltersConfig,
+export const AddCategoryFiltersConfig: CommandConfig = {
+	name: "add",
+	description: "Add a category to your filters",
+	type: "Command",
+	options: [
+		{
+			type: ApplicationCommandOptionType.String,
+			name: CATEGORY_OPTION_NAME,
+			description: "Name of the category",
+			autocomplete: true,
+			required: true,
+		},
+	],
 	ChatInputHandler: handler,
 	AutocompleteHandler: autocomplete,
 };
-
-export default AddCategoryFiltersConfig;

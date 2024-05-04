@@ -1,10 +1,8 @@
-import { type CommandConfig } from "@/utils/commands/baseCommand";
 import List from "./list";
 import Search from "./search";
-import { createRegister } from "@/utils/commands/register";
-import { createHandler } from "@/utils/commands/handler";
+import { createRegister, createHandler } from "@/utils/commands";
 
-const Config: CommandConfig = {
+const Config = {
 	name: "communities",
 	description: "Interact with FDGL communities",
 };
