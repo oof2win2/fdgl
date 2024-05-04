@@ -31,3 +31,20 @@ model GuildConfig {
     id             String  @id
     filterObjectId String?
 }
+
+model ReportCreation {
+    id String @id /// the ID of the report creation process
+
+    playername String
+    /// JSONB object of category filters
+    /// @kyselyType(JSONColumnType<Array<string>>)
+    categories Bytes?
+    /// JSONB object of community filters
+    /// @kyselyType(JSONColumnType<Array<string>>)
+    proofLinks Bytes?
+
+    description String?
+
+    /// @kyselyType(Date)
+    expiresAt DateTime
+}

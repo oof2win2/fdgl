@@ -36,7 +36,8 @@ export type CommandExecutionData = {
 	config: CommandConfig;
 };
 
-export const commands = ["ping", "categories", "communities", "filters"];
+// export const commands = ["ping", "categories", "communities", "filters"];
+export const commands = ["reports"];
 
 export const CommandWithSubcommandsHandler = (
 	subcommands: CommandExecutionData[],
