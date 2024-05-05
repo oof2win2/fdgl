@@ -177,7 +177,9 @@ export class Reports {
 
 		const generatedProofIds = [];
 		for (let i = 0; i < data.proofRequestCount; i++) {
-			generatedProofIds.push(generateId());
+			const proofId = generateId(4);
+			const finalId = `${reportId}.${proofId}`;
+			generatedProofIds.push(finalId);
 		}
 
 		return {
