@@ -45,6 +45,34 @@ export function getStringOption(
 	return option.value;
 }
 
+export function getBooleanOption(
+	options: APIApplicationCommandInteractionDataOption[] | undefined,
+	name: string,
+	required: true,
+): boolean;
+export function getBooleanOption(
+	options: APIApplicationCommandInteractionDataOption[] | undefined,
+	name: string,
+	required?: boolean,
+): boolean | null;
+export function getBooleanOption(
+	options: APIApplicationCommandInteractionDataOption[] | undefined,
+	name: string,
+	required = false,
+) {
+	const option = getTypedOption(
+		options,
+		name,
+		ApplicationCommandOptionType.Boolean,
+	);
+	if (!option) {
+		if (required) throw new Error("Option is required but missing");
+		return null;
+	}
+
+	return option.value;
+}
+
 export function getAttachmentOption(
 	options: APIApplicationCommandInteractionDataOption[] | undefined,
 	name: string,
