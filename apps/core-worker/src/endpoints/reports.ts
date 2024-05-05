@@ -28,11 +28,12 @@ const fixReport = (report: ReportWithProofAndCategories, baseurl: string) => {
 };
 
 type GetReportsFilters = {
-	categoryIds: string[];
-	communityIds: string[];
-	createdSince: Date | null;
-	revokedSince: Date | null;
-	updatedSince: Date | null;
+	categoryIds?: string[];
+	communityIds?: string[];
+	playername?: string;
+	createdSince?: Date;
+	revokedSince?: Date;
+	updatedSince?: Date;
 };
 
 type ReportCreateData = {
@@ -99,10 +100,12 @@ export class Reports {
 						.whereRef("ReportProof.reportId", "=", "Reports.id"),
 				).as("proof"),
 			]);
-		if (filters.communityIds.length)
+		if (filters.playername)
+			query = query.where("Reports.playername", "=", filters.playername);
+		if (filters.communityIds?.length)
 			query = query.where("Reports.communityId", "in", filters.communityIds);
-		// this mess is basically selecting
-		if (filters.categoryIds.length)
+		// this mess is basically selecting matching categories
+		if (filters.categoryIds?.length)
 			query = query.where((wb) =>
 				wb(
 					"Reports.id",
@@ -110,7 +113,11 @@ export class Reports {
 					wb
 						.selectFrom("ReportCategory")
 						.select("ReportCategory.reportId")
-						.where("ReportCategory.categoryId", "in", filters.categoryIds),
+						.where(
+							"ReportCategory.categoryId",
+							"in",
+							filters.categoryIds as string[],
+						),
 				),
 			);
 		if (filters.createdSince)
@@ -158,6 +165,14 @@ export class Reports {
 				description: data.description,
 				createdBy: data.createdBy,
 			})
+			.execute();
+		await this.env.DB.insertInto("ReportCategory")
+			.values(
+				data.categoryIds.map((c) => ({
+					reportId,
+					categoryId: c,
+				})),
+			)
 			.execute();
 
 		const generatedProofIds = [];
