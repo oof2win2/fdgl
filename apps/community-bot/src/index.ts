@@ -6,7 +6,10 @@ import {
 	type APIInteraction,
 	type APIInteractionResponse,
 } from "discord-api-types/v10";
-import { hexStringToUint8Array, verifyDiscordInteraction } from "@/utils";
+import {
+	hexStringToUint8Array,
+	verifyDiscordInteraction,
+} from "@/utils/discord/verifyInteraction";
 import {
 	handleAutocompleteInteraction,
 	handleChatInputInteraction,
@@ -109,7 +112,7 @@ export default {
 
 		// in dev mode, we want to have better logging
 		const res = await fetch(
-			`${env.DISCORD_API_BASEURL}/interactions/${interaction.id}/${interaction.token}/callback`,
+			`https://discord.com/api/v10/interactions/${interaction.id}/${interaction.token}/callback`,
 			{
 				method: "POST",
 				body: JSON.stringify(response),

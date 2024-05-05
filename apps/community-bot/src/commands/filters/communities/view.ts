@@ -32,12 +32,12 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const embed: APIEmbed = {};
 	embed.title = "FDGL Filtered Communities";
 	embed.description = "List of all communities in this guild's filters";
-	const fields: APIEmbedField[] = filterObject.filteredCategories.map((id) => {
+	const fields: APIEmbedField[] = filterObject.filteredCommunities.map((id) => {
 		// biome-ignore lint/style/noNonNullAssertion: The community must exist in the filter object
 		const community = communities.find((c) => c.id === id)!;
 		return {
 			name: community.name,
-			value: `Contact: ${community.contact}`,
+			value: `Contact: <@${community.contact}>`,
 		};
 	});
 	embed.fields = fields.slice(0, 10);

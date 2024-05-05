@@ -1,5 +1,6 @@
 import {
 	ApplicationCommandOptionType,
+	type APIApplicationCommandInteractionDataAttachmentOption,
 	type APIApplicationCommandInteractionDataOption,
 } from "discord-api-types/v10";
 
@@ -35,6 +36,34 @@ export function getStringOption(
 		options,
 		name,
 		ApplicationCommandOptionType.String,
+	);
+	if (!option) {
+		if (required) throw new Error("Option is required but missing");
+		return null;
+	}
+
+	return option.value;
+}
+
+export function getAttachmentOption(
+	options: APIApplicationCommandInteractionDataOption[] | undefined,
+	name: string,
+	required: true,
+): string;
+export function getAttachmentOption(
+	options: APIApplicationCommandInteractionDataOption[] | undefined,
+	name: string,
+	required?: boolean,
+): string | null;
+export function getAttachmentOption(
+	options: APIApplicationCommandInteractionDataOption[] | undefined,
+	name: string,
+	required = false,
+) {
+	const option = getTypedOption(
+		options,
+		name,
+		ApplicationCommandOptionType.Attachment,
 	);
 	if (!option) {
 		if (required) throw new Error("Option is required but missing");

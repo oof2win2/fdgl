@@ -9,12 +9,13 @@ import type {
 } from "@/utils/commands";
 import { getFilterObject } from "@/utils/getFilterObject";
 import {
+	getAttachmentOption,
 	getFocusedInteractionOption,
 	getStringOption,
 } from "@/utils/discord/getCommandOption";
 import { stringSimilarity } from "string-similarity-js";
 
-const CATEGORY_OPTION_NAME = "category" as const;
+const PROOF_OPTION_NAME = "proof" as const;
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const guildId = interaction.guild_id;
@@ -26,31 +27,16 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 			},
 		};
 
-	const filterObject = await getFilterObject(guildId, env);
-
-	const id = getStringOption(
+	const attachmentId = getAttachmentOption(
 		interaction.data.options,
-		CATEGORY_OPTION_NAME,
+		PROOF_OPTION_NAME,
 		true,
 	);
-	if (!filterObject.filteredCategories.includes(id)) {
-		return {
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content:
-					"This category is not present in your filters, therefore you cannot create reports for it",
-			},
-		};
-	}
-	const category = await env.FDGL.categories.getCategory(id);
 
-	if (!category)
-		return {
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: "The category could not be found",
-			},
-		};
+	if (!interaction.data.resolved?.attachments)
+		throw new Error("Attachments were not found");
+
+	const attachment = interaction.data.resolved.attachments[attachmentId];
 
 	const member = interaction.member;
 	if (!member) throw new Error("invalid");
@@ -58,7 +44,7 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const reportCreationId = `${guildId}.${member.user.id}`;
 
 	const previousReport = await env.DB.selectFrom("ReportCreation")
-		.select("categories")
+		.select("proofLinks")
 		.where("id", "=", reportCreationId)
 		.executeTakeFirst();
 
@@ -71,20 +57,12 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 		};
 	}
 
-	const newCategories = previousReport.categories ?? [];
-	if (newCategories.includes(category.id)) {
-		return {
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: `The category "${category.name}" is already present on the report`,
-			},
-		};
-	}
-	newCategories.push(category.id);
+	const newProof = previousReport.proofLinks ?? [];
+	newProof.push(attachment.proxy_url);
 
 	await env.DB.updateTable("ReportCreation")
 		.set({
-			categories: JSON.stringify(newCategories),
+			proofLinks: JSON.stringify(newProof),
 		})
 		.where("id", "=", reportCreationId)
 		.execute();
@@ -92,7 +70,7 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 	return {
 		type: InteractionResponseType.ChannelMessageWithSource,
 		data: {
-			content: `The category "${category.name}" was added to the report`,
+			content: "The attachment has been added as proof to the report",
 		},
 	};
 };
@@ -119,15 +97,14 @@ const autocomplete: AutocompleteHandler = async (interaction, env) => {
 };
 
 const Config: CommandConfig = {
-	name: "addcategory",
-	description: "Add a category to the report being created",
+	name: "addproof",
+	description: "Add proof to the report being created",
 	type: "Command",
 	options: [
 		{
-			type: ApplicationCommandOptionType.String,
-			name: CATEGORY_OPTION_NAME,
-			description: "Name of the category",
-			autocomplete: true,
+			type: ApplicationCommandOptionType.Attachment,
+			name: PROOF_OPTION_NAME,
+			description: "The proof to add",
 			required: true,
 		},
 	],

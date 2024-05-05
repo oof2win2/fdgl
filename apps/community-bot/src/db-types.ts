@@ -8,6 +8,7 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 export type GuildConfig = {
 	id: string;
 	filterObjectId: string | null;
+	communityId: string | null;
 };
 export type PagedData = {
 	id: string;
@@ -37,7 +38,7 @@ export type ReportCreation = {
 	 * @kyselyType(JSONColumnType<Array<string>>)
 	 */
 	proofLinks: JSONColumnType<Array<string>> | null;
-	description: string | null;
+	description: string;
 	/**
 	 * @kyselyType(Date)
 	 */

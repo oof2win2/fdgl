@@ -1,5 +1,6 @@
 import type { RESTPostAPIApplicationGuildCommandsJSONBody } from "discord-api-types/v10";
-import { commands } from "@/utils/commands/baseCommand";
+
+const commands = ["ping", "categories", "communities", "filters", "reports"];
 
 const config = Bun.TOML.parse(await Bun.file(".dev.vars").text());
 
@@ -19,6 +20,8 @@ for (const command of commands) {
 	});
 	if (res.ok) {
 		console.log(`Command ${registerData.name} imported successfully`);
+	} else if (res.status === 429) {
+		console.log("Rate limit has been exceeded");
 	} else {
 		console.log(JSON.stringify(registerData, null, 2));
 		console.log(JSON.stringify(await res.json(), null, 2));

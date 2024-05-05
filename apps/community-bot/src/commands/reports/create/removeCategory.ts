@@ -26,22 +26,12 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 			},
 		};
 
-	const filterObject = await getFilterObject(guildId, env);
-
 	const id = getStringOption(
 		interaction.data.options,
 		CATEGORY_OPTION_NAME,
 		true,
 	);
-	if (!filterObject.filteredCategories.includes(id)) {
-		return {
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content:
-					"This category is not present in your filters, therefore you cannot create reports for it",
-			},
-		};
-	}
+
 	const category = await env.FDGL.categories.getCategory(id);
 
 	if (!category)
@@ -71,16 +61,16 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 		};
 	}
 
-	const newCategories = previousReport.categories ?? [];
-	if (newCategories.includes(category.id)) {
+	const previous = previousReport.categories ?? [];
+	if (!previous.includes(category.id)) {
 		return {
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: `The category "${category.name}" is already present on the report`,
+				content: `The category "${category.name}" is not present on the report`,
 			},
 		};
 	}
-	newCategories.push(category.id);
+	const newCategories = previous.filter((x) => x !== category.id);
 
 	await env.DB.updateTable("ReportCreation")
 		.set({
@@ -119,8 +109,8 @@ const autocomplete: AutocompleteHandler = async (interaction, env) => {
 };
 
 const Config: CommandConfig = {
-	name: "addcategory",
-	description: "Add a category to the report being created",
+	name: "removecategory",
+	description: "Remove a category from the report being created",
 	type: "Command",
 	options: [
 		{

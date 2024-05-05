@@ -30,6 +30,7 @@ model PagedData {
 model GuildConfig {
     id             String  @id
     filterObjectId String?
+    communityId    String?
 }
 
 model ReportCreation {
@@ -40,10 +41,10 @@ model ReportCreation {
     /// @kyselyType(JSONColumnType<Array<string>>)
     categories Bytes?
     /// JSONB object of community filters
-    /// @kyselyType(JSONColumnType<Array<string>>)
+    /// @kyselyType(JSONColumnType<Array<{filename: string, url: string}>>)
     proofLinks Bytes?
 
-    description String?
+    description String
 
     /// @kyselyType(Date)
     expiresAt DateTime
