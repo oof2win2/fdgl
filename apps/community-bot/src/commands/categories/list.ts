@@ -6,6 +6,7 @@ import {
 	type APIEmbed,
 } from "discord-api-types/v10";
 import type { ChatInputCommandHandler, CommandConfig } from "@/utils/commands";
+import { datePlus } from "itty-time";
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const categories = await env.FDGL.categories.getAllCategories();
@@ -37,7 +38,7 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 			id: interaction.id,
 			currentPage: 0,
 			data: fields,
-			expiresAt: new Date(),
+			expiresAt: datePlus("5 minutes"),
 		})
 		.execute();
 

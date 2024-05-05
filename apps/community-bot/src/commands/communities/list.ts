@@ -9,6 +9,7 @@ import type {
 	CommandConfig,
 	ChatInputCommandHandler,
 } from "@/utils/commands/types";
+import { datePlus } from "itty-time";
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const communities = await env.FDGL.communities.getAllCommunities();
@@ -40,7 +41,7 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 			id: interaction.id,
 			currentPage: 0,
 			data: fields,
-			expiresAt: new Date(),
+			expiresAt: datePlus("5 minutes"),
 		})
 		.execute();
 
