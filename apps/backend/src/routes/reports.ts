@@ -119,7 +119,8 @@ ReportsRouter.put<
 			const proofReq = body.proofRequests[i];
 			const proofId = res.proofIds[i];
 
-			baseR2Url.pathname = `/${proofId}.${getExtensionForFiletype(
+			// the proof pathname is the id of the report, the id of the proof, and the filetype
+			baseR2Url.pathname = `/${res.id}.${proofId}.${getExtensionForFiletype(
 				proofReq.filetype,
 			)}`;
 			// baseR2Url.searchParams.set("Content-Length", proofReq.filesize);

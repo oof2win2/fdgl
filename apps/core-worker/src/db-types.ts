@@ -36,7 +36,6 @@ export type FilterObject = {
 	filteredCommunities: JSONColumnType<Record<string, boolean>>;
 };
 export type ReportCategory = {
-	id: Generated<number>;
 	reportId: string;
 	categoryId: string;
 };

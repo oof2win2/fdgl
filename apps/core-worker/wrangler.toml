@@ -15,3 +15,5 @@ database_id = "fb5ec937-8f92-4532-a8c4-9d2d0abc9675"
 [[r2_buckets]]
 binding = "R2"
 bucket_name = "fdgl-proofs"
+
+# TODO: add a queue to receive notifications from the R2 bucket

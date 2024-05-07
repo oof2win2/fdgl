@@ -82,7 +82,8 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 		if (!ending) throw new Error("File was uploaded without an ending");
 
 		const file = await fetch(proof);
-		await env.R2.put(`${id}.${ending}`, file.body);
+		// the proof pathname is the id of the report, the id of the proof, and the filetype
+		await env.R2.put(`${report.id}.${id}.${ending}`, file.body);
 	}
 
 	await env.DB.deleteFrom("ReportCreation")

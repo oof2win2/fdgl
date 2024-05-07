@@ -95,7 +95,7 @@ export default {
 			const [reportId, proofId, fileend] = filename.split(".");
 			if (isValidFileEnding(fileend)) {
 				messages.push({
-					proofId: `${reportId}.${proofId}`,
+					proofId,
 					reportId,
 					filetype: getFiletypeForExtension(fileend),
 				});

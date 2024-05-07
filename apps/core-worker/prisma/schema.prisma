@@ -54,19 +54,20 @@ model Reports {
 }
 
 model ReportCategory {
-    id         Int    @id @default(autoincrement())
     reportId   String
     categoryId String
 
+    @@id([reportId, categoryId])
     @@index([reportId])
     @@index([categoryId])
 }
 
 model ReportProof {
-    proofId  String @id
+    proofId  String
     reportId String
     filetype String /// @kyselyType("image/jpeg" | "image/png")
 
+    @@id([proofId, reportId])
     @@index([reportId])
 }
 
