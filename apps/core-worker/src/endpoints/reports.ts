@@ -1,5 +1,5 @@
 import { jsonArrayFrom } from "kysely/helpers/sqlite";
-import type { ReportProof } from "../db-types";
+import type { ReportProof } from "../types";
 import type { CustomEnv, ReportWithProofAndCategories } from "../types";
 import { generateId } from "../utils/generateId";
 

@@ -1,7 +1,6 @@
 import { WorkerEntrypoint } from "cloudflare:workers";
-import type { CustomEnv, R2EventNotification } from "./types";
 import { Kysely } from "kysely";
-import type { DB, ReportProof } from "./db-types";
+import type { DB, ReportProof, CustomEnv, R2EventNotification } from "./types";
 import { SerializePlugin } from "kysely-plugin-serialize";
 import { D1Dialect } from "./kysely-d1";
 import { Reports } from "./endpoints/reports";

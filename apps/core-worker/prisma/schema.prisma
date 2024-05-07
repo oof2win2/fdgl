@@ -9,7 +9,7 @@ generator kysely {
 
     // Optionally provide a destination directory for the generated file
     // and a filename of your choice
-    output   = "../src"
+    output   = "../src/types"
     fileName = "db-types.ts"
 }
 
@@ -75,9 +75,9 @@ model FilterObject {
     id String @id
 
     /// JSONB object of category filters
-    /// @kyselyType(JSONColumnType<Record<string, boolean>>)
+    /// @kyselyType(import("./db-base").JSONBStringBoolRecord)
     filteredCategories  Bytes
     /// JSONB object of community filters
-    /// @kyselyType(JSONColumnType<Record<string, boolean>>)
+    /// @kyselyType(import("./db-base").JSONBStringBoolRecord)
     filteredCommunities Bytes
 }
