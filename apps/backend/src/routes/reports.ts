@@ -33,19 +33,19 @@ const DateSchema = v.transform(
 // GET /
 // get reports by category, community, and time filters
 const getReportsFiltered = v.object({
-	// these two are technically optional but getAll returns an array even when no values are present
-	categoryIds: v.array(v.string()),
-	communityIds: v.array(v.string()),
-	createdSince: v.nullable(DateSchema),
-	revokedSince: v.nullable(DateSchema),
-	updatedSince: v.nullable(DateSchema),
+	categoryIds: v.optional(v.array(v.string())),
+	communityIds: v.optional(v.array(v.string())),
+	playername: v.optional(v.string()),
+	createdSince: v.optional(DateSchema),
+	revokedSince: v.optional(DateSchema),
+	updatedSince: v.optional(DateSchema),
 });
 ReportsRouter.get("/", async (req, env) => {
 	const searchParams = new URL(req.url).searchParams;
 	const params = v.parse(getReportsFiltered, {
 		categoryIds: searchParams.getAll("categoryIds"),
 		communityIds: searchParams.getAll("communityIds"),
-		isRevoked: searchParams.getAll("isRevoked"),
+		playername: searchParams.get("playername"),
 		createdSince: searchParams.get("createdSince"),
 		revokedSince: searchParams.get("revokedSince"),
 		updatedSince: searchParams.get("updatedSince"),
