@@ -14,13 +14,8 @@ export type CategoryCreatedNotification = {
 	categoryId: string;
 };
 
-export type CategoryUpdatedNotification = {
-	type: "categoryUpdated";
-	categoryId: string;
-};
-
 export type CategoriesMergedNotification = {
-	type: "categoryDeleted";
+	type: "categoryMerged";
 	sourceId: string;
 	targetId: string;
 };
@@ -29,5 +24,4 @@ export type SystemEventNotificationContent =
 	| CommunityCreationNotification
 	| CommunityMergeNotification
 	| CategoryCreatedNotification
-	| CategoryUpdatedNotification
 	| CategoriesMergedNotification;

@@ -66,6 +66,17 @@ export type Reports = {
      */
     updatedAt: Date;
 };
+export type SystemEvent = {
+    id: Generated<number>;
+    /**
+     * @kyselyType(import("./notifications").SystemEventNotificationContent)
+     */
+    data: import("./notifications").SystemEventNotificationContent;
+    /**
+     * @kyselyType(Date)
+     */
+    createdAt: Date;
+};
 export type DB = {
     Authorization: Authorization;
     Categories: Categories;
@@ -74,4 +85,5 @@ export type DB = {
     ReportCategory: ReportCategory;
     ReportProof: ReportProof;
     Reports: Reports;
+    SystemEvent: SystemEvent;
 };

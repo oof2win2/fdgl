@@ -56,6 +56,16 @@ export class Communities {
 			})
 			.execute();
 
+		await this.env.DB.insertInto("SystemEvent")
+			.values({
+				createdAt: new Date(),
+				data: {
+					type: "communityCreation",
+					communityId,
+				},
+			})
+			.execute();
+
 		return {
 			id: communityId,
 			apikey,
@@ -69,6 +79,17 @@ export class Communities {
 	 */
 	async mergeCommunities(source: string, target: string) {
 		throw new Error("Unimplemented");
+
+		await this.env.DB.insertInto("SystemEvent")
+			.values({
+				createdAt: new Date(),
+				data: {
+					type: "communityMerge",
+					sourceId: source,
+					targetId: destination,
+				},
+			})
+			.execute();
 	}
 
 	/**

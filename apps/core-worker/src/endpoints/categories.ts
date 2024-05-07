@@ -51,6 +51,16 @@ export class Categories {
 			})
 			.execute();
 
+		await this.env.DB.insertInto("SystemEvent")
+			.values({
+				createdAt: new Date(),
+				data: {
+					type: "categoryCreated",
+					categoryId: id,
+				},
+			})
+			.execute();
+
 		return id;
 	}
 
@@ -108,7 +118,19 @@ export class Categories {
 			)
 			.execute();
 
+		await this.env.DB.insertInto("SystemEvent")
+			.values({
+				createdAt: new Date(),
+				data: {
+					type: "categoryMerged",
+					sourceId: source,
+					targetId: destination,
+				},
+			})
+			.execute();
+
 		// and finally we delete the source category
+		// all of the report categories will be deleted with the cascade
 		await this.env.DB.deleteFrom("Categories")
 			.where("id", "=", source)
 			.execute();
