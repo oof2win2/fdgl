@@ -81,3 +81,12 @@ model FilterObject {
     /// @kyselyType(import("./db-base").JSONBStringBoolRecord)
     filteredCommunities Bytes
 }
+
+model SystemEvent {
+    id Int @id @default(autoincrement())
+
+    /// @kyselyType(import("./notifications").SystemEventNotificationContent)
+    data String
+
+    createdAt DateTime /// @kyselyType(Date)
+}
