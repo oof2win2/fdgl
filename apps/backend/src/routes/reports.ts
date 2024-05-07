@@ -1,5 +1,4 @@
 import { AutoRouter, error } from "itty-router";
-import { jsonArrayFrom } from "kysely/helpers/sqlite";
 import * as v from "valibot";
 import type { CF, RequestType } from "../types";
 import { type AuthorizedRequest, communityAuthorize } from "../utils/auth";

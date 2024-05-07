@@ -1,12 +1,14 @@
 import { WorkerEntrypoint } from "cloudflare:workers";
-import type { CustomEnv } from "./types";
+import type { CustomEnv, R2EventNotification } from "./types";
 import { Kysely } from "kysely";
-import type { DB } from "./db-types";
+import type { DB, ReportProof } from "./db-types";
 import { SerializePlugin } from "kysely-plugin-serialize";
 import { D1Dialect } from "./kysely-d1";
 import { Reports } from "./endpoints/reports";
 import { Categories } from "./endpoints/categories";
 import { Communities } from "./endpoints/communities";
+import type { MessageBatch } from "@cloudflare/workers-types";
+import { getFiletypeForExtension, isValidFileEnding } from "./utils/filetypes";
 
 type PickMatching<T, V> = {
 	[K in keyof T as T[K] extends V ? K : never]: T[K];
@@ -72,5 +74,42 @@ export class FDGLService extends WorkerEntrypoint<Env> {
 export default {
 	async fetch() {
 		return new Response("FDGLService is healthy");
+	},
+
+	// queue handler for R2 bucket event notifications
+	async queue(
+		batch: MessageBatch<R2EventNotification>,
+		env: Env,
+	): Promise<void> {
+		const db = new Kysely<DB>({
+			dialect: new D1Dialect({ database: env.DB }),
+			plugins: [new SerializePlugin()],
+		});
+
+		const messages: ReportProof[] = [];
+
+		for (const msg of batch.messages) {
+			if (msg.body.action !== "PutObject") continue;
+			if (msg.body.bucket !== env.R2_BUCKET_NAME) continue;
+			const filename = msg.body.object.key;
+			const [reportId, proofId, fileend] = filename.split(".");
+			if (isValidFileEnding(fileend)) {
+				messages.push({
+					proofId: `${reportId}.${proofId}`,
+					reportId,
+					filetype: getFiletypeForExtension(fileend),
+				});
+				// ack the message if it is valid
+				msg.ack();
+			}
+		}
+
+		await db
+			.insertInto("ReportProof")
+			.values(messages)
+			.onConflict((cb) => cb.doNothing())
+			.execute();
+
+		batch.ackAll();
 	},
 };
