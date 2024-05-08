@@ -8,6 +8,7 @@ import { Categories } from "./endpoints/categories";
 import { Communities } from "./endpoints/communities";
 import type { MessageBatch } from "@cloudflare/workers-types";
 import { getFiletypeForExtension, isValidFileEnding } from "./utils/filetypes";
+import { Misc } from "./endpoints/misc";
 
 type PickMatching<T, V> = {
 	[K in keyof T as T[K] extends V ? K : never]: T[K];
@@ -19,6 +20,8 @@ export class FDGLService extends WorkerEntrypoint<Env> {
 	#categories: Categories;
 	#communities: Communities;
 	#reports: Reports;
+	#misc: Misc;
+
 	constructor(ctx: ExecutionContext, env: Env) {
 		super(ctx, env);
 		const customEnv: CustomEnv = {
@@ -32,6 +35,7 @@ export class FDGLService extends WorkerEntrypoint<Env> {
 		this.#categories = new Categories(customEnv);
 		this.#communities = new Communities(customEnv);
 		this.#reports = new Reports(customEnv);
+		this.#misc = new Misc(customEnv);
 	}
 
 	get categories() {
@@ -66,6 +70,12 @@ export class FDGLService extends WorkerEntrypoint<Env> {
 			createReport: this.#reports.createReport.bind(this.#reports),
 			revokeReport: this.#reports.revokeReport.bind(this.#reports)
 		} satisfies ExtractMethods<Reports>
+	}
+
+	get misc() {
+		return {
+			getSystemEvents: this.#misc.getSystemEvents.bind(this.#misc),
+		} satisfies ExtractMethods<Misc>;
 	}
 }
 
