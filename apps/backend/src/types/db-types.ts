@@ -4,13 +4,14 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   : ColumnType<T, T | undefined, T>;
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-export type Authorization = {
-    apikey: string;
-    communityId: string;
+export type AuthKey = {
+    id: string;
     /**
-     * @kyselyType(Date)
+     * JSONB array of authorized resources
+     * @kyselyType(import("./db-base").JSONBAuthorizedResources)
      */
-    expiresAt: Date;
+    resources: import("./db-base").JSONBAuthorizedResources;
+    apikey: string;
 };
 export type Categories = {
     id: string;
@@ -78,7 +79,7 @@ export type SystemEvent = {
     createdAt: Date;
 };
 export type DB = {
-    Authorization: Authorization;
+    AuthKey: AuthKey;
     Categories: Categories;
     Communities: Communities;
     FilterObject: FilterObject;

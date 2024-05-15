@@ -9,14 +9,7 @@ generator kysely {
 
 datasource db {
     provider = "sqlite"
-    url      = env("DATABASE_URL")
-}
-
-model Authorization {
-    apikey      String   @id
-    communityId String
-    /// @kyselyType(Date)
-    expiresAt   DateTime
+    url      = env("PRISMA_DATABASE_URL")
 }
 
 model Categories {
@@ -83,4 +76,16 @@ model SystemEvent {
     data String
 
     createdAt DateTime /// @kyselyType(Date)
+}
+
+model AuthKey {
+    id String @id
+
+    /// JSONB array of authorized resources
+    /// @kyselyType(import("./db-base").JSONBAuthorizedResources)
+    resources Bytes
+
+    apikey String
+
+    @@index([apikey])
 }

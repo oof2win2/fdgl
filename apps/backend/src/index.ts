@@ -6,6 +6,7 @@ import reports from "./routes/reports";
 import { MasterAuthenticate } from "./utils/auth";
 import communities from "./routes/communities";
 import misc from "./routes/misc";
+import filtersRouter from "routes/filters";
 
 const router = AutoRouter();
 
@@ -19,5 +20,6 @@ router.all(
 	masterCommunities.fetch,
 );
 router.all("/misc/*", misc.fetch);
+router.all("/filters/*", filtersRouter.fetch);
 
 export default router;

@@ -1,6 +1,9 @@
 import { AutoRouter, error } from "itty-router";
 import * as z from "zod";
-import { type AuthorizedRequest, communityAuthorize } from "$utils/auth";
+import {
+	type CommunityAuthorizedRequest,
+	communityAuthorize,
+} from "$utils/auth";
 import { type JSONParsedBody, getJSONBody } from "$utils/jsonBody";
 import { AwsV4Signer } from "aws4fetch";
 import { db } from "$utils/db";
@@ -167,108 +170,105 @@ const createReportSchema = z.object({
 		)
 		.max(10),
 });
-ReportsRouter.put<AuthorizedRequest<JSONParsedBody<typeof createReportSchema>>>(
-	"/",
-	communityAuthorize,
-	getJSONBody(createReportSchema),
-	async (req) => {
-		const body = req.jsonParsedBody;
-		const categories = await db
-			.selectFrom("Categories")
-			.select("id")
-			.where("id", "in", body.categoryIds)
-			.execute();
-		const categoryIds = categories.map((c) => c.id);
-		const invalidCategories = body.categoryIds.filter(
-			(c) => !categoryIds.includes(c),
-		);
-		if (invalidCategories.length)
-			return error(400, "Some or all categories provided are invalid");
-		const reportId = generateId();
-		const reportProofIds = Array.from(
-			{
-				length: body.proofRequests.length,
-			},
-			() => generateId(4),
-		);
+ReportsRouter.put<
+	CommunityAuthorizedRequest<JSONParsedBody<typeof createReportSchema>>
+>("/", communityAuthorize, getJSONBody(createReportSchema), async (req) => {
+	const body = req.jsonParsedBody;
+	const categories = await db
+		.selectFrom("Categories")
+		.select("id")
+		.where("id", "in", body.categoryIds)
+		.execute();
+	const categoryIds = categories.map((c) => c.id);
+	const invalidCategories = body.categoryIds.filter(
+		(c) => !categoryIds.includes(c),
+	);
+	if (invalidCategories.length)
+		return error(400, "Some or all categories provided are invalid");
+	const reportId = generateId();
+	const reportProofIds = Array.from(
+		{
+			length: body.proofRequests.length,
+		},
+		() => generateId(4),
+	);
 
-		// now we insert everything into the database
-		// we use a transaction so that everything either works or fails
-		await db.transaction().execute(async (tx) => {
-			await tx
-				.insertInto("Reports")
-				.values({
-					id: reportId,
-					playername: body.playername,
-					communityId: req.communityId,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-					description: body.description,
-					createdBy: body.createdBy,
-				})
-				.execute();
-			await tx
-				.insertInto("ReportCategory")
-				.values(
-					body.categoryIds.map((c) => ({
-						reportId,
-						categoryId: c,
-					})),
-				)
-				.execute();
+	// now we insert everything into the database
+	// we use a transaction so that everything either works or fails
+	await db.transaction().execute(async (tx) => {
+		await tx
+			.insertInto("Reports")
+			.values({
+				id: reportId,
+				playername: body.playername,
+				communityId: req.communityId,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				description: body.description,
+				createdBy: body.createdBy,
+			})
+			.execute();
+		await tx
+			.insertInto("ReportCategory")
+			.values(
+				body.categoryIds.map((c) => ({
+					reportId,
+					categoryId: c,
+				})),
+			)
+			.execute();
+	});
+
+	// first we create proof upload URLs
+	const reportProofUrls = [];
+
+	// create the aws signer
+	const baseR2Url = new URL(ENV.S3_BUCKET_URL);
+	// expire the URL in 1 hour
+	baseR2Url.searchParams.set("X-Amz-Expires", "3600");
+
+	for (let i = 0; i < body.proofRequests.length; i++) {
+		// for every request for proof, we ensure that the image is within our spec
+		// we already know that the image filetypes are image/jpeg or image/png
+		// and the size of each image is under 8MB
+		// for every new proof, we create a URL
+		const proofReq = body.proofRequests[i];
+		const proofId = reportProofIds[i];
+
+		// the proof pathname is the id of the report, the id of the proof, and the filetype
+		baseR2Url.pathname = `/${reportId}.${proofId}.${getExtensionForFiletype(
+			proofReq.filetype,
+		)}`;
+		// baseR2Url.searchParams.set("Content-Length", proofReq.filesize);
+		const signer = new AwsV4Signer({
+			accessKeyId: ENV.S3_ACCESS_KEY_ID,
+			secretAccessKey: ENV.S3_SECRET_ACCESS_KEY,
+			url: baseR2Url.toString(),
+			method: "PUT",
+			// sign the query instead of auth header, we aren't passing them the header
+			signQuery: true,
+			headers: {
+				"Content-Length": proofReq.filesize,
+				"Content-Type": proofReq.filetype,
+			},
+			// sign even the content length and type headers
+			allHeaders: true,
 		});
 
-		// first we create proof upload URLs
-		const reportProofUrls = [];
+		// create a URL to upload the files to with the base being set to whatever made the request here
+		const data = await signer.sign();
 
-		// create the aws signer
-		const baseR2Url = new URL(ENV.S3_BUCKET_URL);
-		// expire the URL in 1 hour
-		baseR2Url.searchParams.set("X-Amz-Expires", "3600");
+		reportProofUrls.push(data.url.toString());
+	}
 
-		for (let i = 0; i < body.proofRequests.length; i++) {
-			// for every request for proof, we ensure that the image is within our spec
-			// we already know that the image filetypes are image/jpeg or image/png
-			// and the size of each image is under 8MB
-			// for every new proof, we create a URL
-			const proofReq = body.proofRequests[i];
-			const proofId = reportProofIds[i];
-
-			// the proof pathname is the id of the report, the id of the proof, and the filetype
-			baseR2Url.pathname = `/${reportId}.${proofId}.${getExtensionForFiletype(
-				proofReq.filetype,
-			)}`;
-			// baseR2Url.searchParams.set("Content-Length", proofReq.filesize);
-			const signer = new AwsV4Signer({
-				accessKeyId: ENV.S3_ACCESS_KEY_ID,
-				secretAccessKey: ENV.S3_SECRET_ACCESS_KEY,
-				url: baseR2Url.toString(),
-				method: "PUT",
-				// sign the query instead of auth header, we aren't passing them the header
-				signQuery: true,
-				headers: {
-					"Content-Length": proofReq.filesize,
-					"Content-Type": proofReq.filetype,
-				},
-				// sign even the content length and type headers
-				allHeaders: true,
-			});
-
-			// create a URL to upload the files to with the base being set to whatever made the request here
-			const data = await signer.sign();
-
-			reportProofUrls.push(data.url.toString());
-		}
-
-		return {
-			id: reportId,
-			proofURLs: reportProofUrls,
-		};
-	},
-);
+	return {
+		id: reportId,
+		proofURLs: reportProofUrls,
+	};
+});
 
 // revoke a report
-ReportsRouter.delete<AuthorizedRequest>(
+ReportsRouter.delete<CommunityAuthorizedRequest>(
 	"/:id",
 	communityAuthorize,
 	async (req) => {
