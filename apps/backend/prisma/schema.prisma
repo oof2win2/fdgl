@@ -1,6 +1,9 @@
 generator kysely {
     provider = "prisma-kysely"
-    output   = "../src"
+
+    // Optionally provide a destination directory for the generated file
+    // and a filename of your choice
+    output   = "../src/types"
     fileName = "db-types.ts"
 }
 
@@ -9,69 +12,75 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+model Authorization {
+    apikey      String   @id
+    communityId String
+    /// @kyselyType(Date)
+    expiresAt   DateTime
+}
+
 model Categories {
-    id             String           @id
-    name           String
-    description    String
-    ReportCategory ReportCategory[]
+    id          String @id
+    name        String
+    description String
 }
 
 model Communities {
     id      String @id
     name    String
     contact String
-
-    Reports Reports[]
 }
 
 model Reports {
-    id          String      @id
+    id          String  @id
     playername  String
     description String?
     communityId String
     createdBy   String
-    community   Communities @relation(fields: [communityId], references: [id], onDelete: Cascade)
 
-    revokedAt String?
-    createdAt String
-    updatedAt String
+    revokedAt DateTime? /// @kyselyType(Date)
+    createdAt DateTime /// @kyselyType(Date)
+    updatedAt DateTime /// @kyselyType(Date)
 
-    ReportCategory ReportCategory[]
-    ReportProof    ReportProof[]
-
-    @@index([communityId], name: "Reports_communityId")
-    @@index([updatedAt], name: "Reports_updatedAt")
+    @@index([updatedAt])
+    @@index([playername])
+    @@index([communityId])
 }
 
 model ReportCategory {
-    id         Int    @id @default(autoincrement())
     reportId   String
     categoryId String
 
-    report   Reports    @relation(fields: [reportId], references: [id], onDelete: Cascade)
-    category Categories @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-    @@unique([reportId, categoryId], name: "ReportCategory_reportId_categoryId")
-    @@index([reportId], name: "ReportCategory_reportId")
+    @@id([reportId, categoryId])
+    @@index([reportId])
+    @@index([categoryId])
 }
 
 model ReportProof {
-    proofId  String @id
+    proofId  String
     reportId String
+    filetype String /// @kyselyType("image/jpeg" | "image/png")
 
-    report Reports @relation(fields: [reportId], references: [id], onDelete: Cascade)
-
-    uploadExpiresAt String?
-
-    @@unique([reportId, proofId], name: "ReportProof_reportId_proofId")
-    @@index([reportId], name: "ReportProof_reportId")
-    @@index([uploadExpiresAt], name: "ReportProof_uploadExpiresAt")
+    @@id([proofId, reportId])
+    @@index([reportId])
 }
 
-model Authorization {
-    id          String @id
-    communityId String
-    expiresAt   String
+model FilterObject {
+    id String @id
 
-    @@index([communityId], name: "Authorization_communityId")
+    /// JSONB object of category filters
+    /// @kyselyType(import("./db-base").JSONBStringBoolRecord)
+    filteredCategories  Bytes
+    /// JSONB object of community filters
+    /// @kyselyType(import("./db-base").JSONBStringBoolRecord)
+    filteredCommunities Bytes
+}
+
+model SystemEvent {
+    id Int @id @default(autoincrement())
+
+    /// @kyselyType(import("./notifications").SystemEventNotificationContent)
+    data String
+
+    createdAt DateTime /// @kyselyType(Date)
 }

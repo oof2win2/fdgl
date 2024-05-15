@@ -1,22 +1,22 @@
 import { AutoRouter } from "itty-router";
-import { object, string } from "valibot";
-import type { CF, RequestType } from "../types";
-import { type JSONParsedBody, getJSONBody } from "../utils/json-body";
+import * as z from "zod";
+import { type JSONParsedBody, getJSONBody } from "$utils/jsonBody";
 
-const masterCommunitiesRouter = AutoRouter<RequestType, CF>({
+const masterCommunitiesRouter = AutoRouter({
 	base: "/master/communities",
 });
 
 // PUT /communities
 // create community
-const createCommunitySchema = object({
-	contact: string(),
-	name: string(),
+const createCommunitySchema = z.object({
+	contact: z.string(),
+	name: z.string(),
 });
-masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>, CF>(
+masterCommunitiesRouter.put<JSONParsedBody<typeof createCommunitySchema>>(
 	"/",
 	getJSONBody(createCommunitySchema),
 	async (req, env) => {
+		console.log(req.jsonParsedBody);
 		const res = await env.FDGL.communities.createCommunity({
 			name: req.jsonParsedBody.name,
 			contact: req.jsonParsedBody.contact,

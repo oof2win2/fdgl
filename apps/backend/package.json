@@ -1,23 +1,24 @@
 {
-	"name": "@fdgl/backend",
-	"module": "src/index.ts",
-	"type": "module",
-	"scripts": {
-		"dev": "wrangler dev"
-	},
-	"dependencies": {
-		"aws4fetch": "^1.0.18",
-		"itty-router": "5",
-		"itty-time": "^0.2.2",
-		"kysely-plugin-serialize": "^0.6.0",
-		"nanoid": "^5.0.5",
-		"valibot": "^0.28.1"
-	},
-	"peerDependencies": {
-		"typescript": "^5.0.0"
-	},
-	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20240208.0",
-		"@types/bun": "^1.0.5"
-	}
+  "name": "@fdgl/backend",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "aws4fetch": "^1.0.18",
+    "itty-router": "^5.0.17",
+    "itty-time": "^0.2.2",
+    "kysely": "^0.27.3",
+    "kysely-bun-sqlite": "^0.3.2",
+    "kysely-plugin-serialize": "^0.6.0",
+    "nanoid": "^5.0.5",
+    "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.0.5"
+  }
 }
