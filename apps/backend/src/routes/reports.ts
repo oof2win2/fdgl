@@ -154,7 +154,7 @@ const createReportSchema = z.object({
 	playername: z.string(),
 	description: z.string(),
 	createdBy: z.string(),
-	// categoryIds: v.array(v.string(), [v.minLength(1), v.maxLength(100)]),
+
 	categoryIds: z.string().array().min(1).max(100),
 	proofRequests: z
 		.array(
