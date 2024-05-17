@@ -15,6 +15,16 @@ export const Report = z.object({
 });
 export type Report = z.infer<typeof Report>;
 
+export const GetReportFilters = z.object({
+	categoryIds: z.string().array().optional(),
+	communityIds: z.string().array().optional(),
+	playername: z.string().optional(),
+	createdSince: z.coerce.date().optional(),
+	revokedSince: z.coerce.date().optional(),
+	updatedSince: z.coerce.date().optional(),
+});
+export type GetReportFilters = z.infer<typeof GetReportFilters>;
+
 export const CreateReport = z.object({
 	playername: z.string(),
 	description: z.string(),
@@ -41,3 +51,4 @@ export const Revocation = Report.extend({
 	revoked: z.literal(true),
 	revokedAt: z.coerce.date(),
 });
+export type Revocation = z.infer<typeof Revocation>;
