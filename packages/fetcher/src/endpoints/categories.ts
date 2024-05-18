@@ -5,10 +5,10 @@ export default class Categories {
 	constructor(private readonly fetcher: KyInstance) {}
 
 	async getById(id: string) {
-		return await this.fetcher(`/categories/${id}`).json<Category>();
+		return await this.fetcher(`categories/${id}`).json<Category>();
 	}
 
 	async getAll() {
-		return await this.fetcher("/categories").json<Category[]>();
+		return await this.fetcher("categories").json<Category[]>();
 	}
 }

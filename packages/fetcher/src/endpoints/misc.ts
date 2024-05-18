@@ -5,7 +5,7 @@ export default class Misc {
 	constructor(private readonly fetcher: KyInstance) {}
 
 	async getSystemUpdates(since?: Date) {
-		let url = "/misc/system-updates";
+		let url = "misc/system-updates";
 		if (since) url += `?since=${since.toISOString()}`;
 		return await this.fetcher(url).json<FDGLEvent>();
 	}

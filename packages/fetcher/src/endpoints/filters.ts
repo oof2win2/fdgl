@@ -9,11 +9,11 @@ export default class Filters {
 	) {}
 
 	async getById(id: string) {
-		return await this.fetcher(`/filters/${id}`).json<FilterObject>();
+		return await this.fetcher(`filters/${id}`).json<FilterObject>();
 	}
 
 	async upsert(filter: UpsertFilterObject) {
-		return await this.fetcher("/filters", {
+		return await this.fetcher("filters", {
 			method: "post",
 			json: filter,
 			headers: {

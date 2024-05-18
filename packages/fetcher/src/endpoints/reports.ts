@@ -14,7 +14,7 @@ export default class Reports {
 	) {}
 
 	async getById(id: string) {
-		return await this.fetcher(`/reports/${id}`).json<Report | Revocation>();
+		return await this.fetcher(`reports/${id}`).json<Report | Revocation>();
 	}
 
 	async getFiltered(filters: GetReportFilters = {}) {
@@ -33,13 +33,13 @@ export default class Reports {
 		if (filters.updatedSince)
 			params.set("createdSince", filters.updatedSince.toISOString());
 
-		return await this.fetcher(`/reports?${params.toString()}`).json<
+		return await this.fetcher(`reports?${params.toString()}`).json<
 			(Report | Revocation)[]
 		>();
 	}
 
 	async create(data: CreateReport) {
-		return await this.fetcher("/reports", {
+		return await this.fetcher("reports", {
 			method: "post",
 			json: data,
 			headers: {
@@ -49,7 +49,7 @@ export default class Reports {
 	}
 
 	async revoke(id: string) {
-		return await this.fetcher(`/reports/${id}`, {
+		return await this.fetcher(`reports/${id}`, {
 			method: "delete",
 			headers: {
 				"x-fdgl-apikey": this.auth.getAuth(),
