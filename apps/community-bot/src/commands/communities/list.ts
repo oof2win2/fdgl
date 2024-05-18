@@ -1,27 +1,27 @@
-import {
-	ButtonStyle,
-	ComponentType,
-	InteractionResponseType,
-	MessageFlags,
-	type APIEmbed,
-} from "discord-api-types/v10";
 import type {
 	CommandConfig,
 	ChatInputCommandHandler,
-} from "@/utils/commands/types";
+} from "$utils/commands/types";
 import { datePlus } from "itty-time";
+import { fdgl } from "$utils/fdgl";
+import { db } from "$utils/db";
+import {
+	ButtonStyle,
+	ComponentType,
+	SlashCommandSubcommandBuilder,
+	type APIEmbed,
+} from "discord.js";
 
-const handler: ChatInputCommandHandler = async (interaction, env) => {
-	const communities = await env.FDGL.communities.getAllCommunities();
+const handler: ChatInputCommandHandler = async (interaction) => {
+	const communities = await fdgl.communities.getAll();
 
-	if (!communities.length)
-		return {
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: "There are currently no communities in the FDGL system",
-				flags: MessageFlags.Ephemeral,
-			},
-		};
+	if (!communities.length) {
+		await interaction.reply({
+			content: "There are currently no communities in the FDGL system",
+			ephemeral: true,
+		});
+		return;
+	}
 
 	const embed: APIEmbed = {};
 	embed.title = "FDGL Communities";
@@ -36,7 +36,8 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 
 	embed.fields = fields.slice(0, 10);
 
-	await env.DB.insertInto("PagedData")
+	await db
+		.insertInto("PagedData")
 		.values({
 			id: interaction.id,
 			currentPage: 0,
@@ -45,36 +46,38 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 		})
 		.execute();
 
-	return {
-		type: InteractionResponseType.ChannelMessageWithSource,
-		data: {
-			embeds: [embed],
-			components: [
-				{
-					type: ComponentType.ActionRow,
-					components: [
-						{
-							type: ComponentType.Button,
-							custom_id: "paging_prev",
-							style: ButtonStyle.Primary,
-							emoji: { name: "⬅️" },
-						},
-						{
-							type: ComponentType.Button,
-							custom_id: "paging_next",
-							style: ButtonStyle.Primary,
-							emoji: { name: "➡️" },
-						},
-					],
-				},
-			],
-		},
-	};
+	await interaction.reply({
+		embeds: [embed],
+		components: [
+			{
+				type: ComponentType.ActionRow,
+				components: [
+					{
+						type: ComponentType.Button,
+						custom_id: "paging_prev",
+						style: ButtonStyle.Primary,
+						emoji: { name: "⬅️" },
+					},
+					{
+						type: ComponentType.Button,
+						custom_id: "paging_next",
+						style: ButtonStyle.Primary,
+						emoji: { name: "➡️" },
+					},
+				],
+			},
+		],
+	});
 };
 
+const name = "list";
+const command = new SlashCommandSubcommandBuilder()
+	.setName(name)
+	.setDescription("List all communities present in FDGL");
+
 const Config: CommandConfig = {
-	name: "list",
-	description: "List all communities present in FDGL",
+	name,
+	command,
 	type: "Command",
 	ChatInputHandler: handler,
 };

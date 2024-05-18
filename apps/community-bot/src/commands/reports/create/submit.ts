@@ -1,5 +1,5 @@
-import type { ChatInputCommandHandler } from "@/utils/commands";
-import type { CommandConfig } from "@/utils/commands/types";
+import type { ChatInputCommandHandler } from "$utils/commands";
+import type { CommandConfig } from "$utils/commands/types";
 import {
 	deferMessage,
 	followupInteractionText,

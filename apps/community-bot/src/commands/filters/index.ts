@@ -1,4 +1,4 @@
-import { createHandler, createRegister } from "@/utils/commands";
+import { createHandler, createRegister } from "$utils/commands";
 import Categories from "./categories";
 import Communities from "./communities";
 

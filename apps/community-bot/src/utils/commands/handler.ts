@@ -3,7 +3,6 @@
  * However, it could definitely use some cleanup.
  */
 
-import { ApplicationCommandOptionType } from "discord-api-types/v10";
 import type {
 	Command,
 	CommandConfig,
@@ -16,68 +15,60 @@ function commandWithSubcommandGroupsHandler(
 	commands: (CommandConfig | SubcommandGroupConfig)[],
 ): CommandExecutionData {
 	return {
-		ChatInputHandler: async (interaction, env) => {
-			const options = interaction.data.options ?? [];
-			const option = options[0];
-			if (option.type === ApplicationCommandOptionType.Subcommand) {
-				const cmd = commands.find((c) => c.name === option.name);
-				if (!cmd) throw new Error("Subcommand not found");
-				if (cmd.type === "SubcommandGroup") throw new Error("oops");
-				// biome-ignore lint/style/noNonNullAssertion: the options will be there as it is a subcommand
-				interaction.data.options = option.options!;
-				return cmd.ChatInputHandler(interaction, env);
-			}
-			if (option.type === ApplicationCommandOptionType.SubcommandGroup) {
-				const group = commands.find(
-					(c) => c.name === option.name && c.type === "SubcommandGroup",
-				);
-				if (!group) throw new Error("Command group not found");
-				if (group.type === "Command") throw new Error("not the right one");
-				const groupOption = option.options[0];
-				const cmdName = groupOption.name;
-				const cmd = group.subcommands.find((c) => c.name === cmdName);
-				if (!cmd) throw new Error("Subcommand not found");
+		ChatInputHandler: async (interaction) => {
+			const groupName = interaction.options.getSubcommandGroup();
+			if (groupName) {
+				const subcommandName = interaction.options.getSubcommand(true);
 
-				interaction.data.options = groupOption.options;
-				return cmd?.ChatInputHandler(interaction, env);
+				const group = commands.find(
+					(c) => c.name === groupName && c.type === "SubcommandGroup",
+				);
+				if (!group) throw new Error(`Command group ${group} not found`);
+				if (group.type !== "SubcommandGroup")
+					throw new Error("not the right one");
+				const cmd = group.subcommands.find((c) => c.name === subcommandName);
+				if (!cmd) throw new Error(`Subcommand ${subcommandName} not found`);
+
+				return cmd.ChatInputHandler(interaction);
 			}
-			throw new Error("Command not handled");
+
+			const cmdName = interaction.options.getSubcommand(true);
+			const cmd = commands.find((c) => c.name === cmdName);
+			if (!cmd) throw new Error("Subcommand not found");
+			if (cmd.type === "SubcommandGroup") throw new Error("oops");
+
+			return cmd.ChatInputHandler(interaction);
 		},
-		AutocompleteHandler: async (interaction, env) => {
-			const options = interaction.data.options ?? [];
-			const option = options[0];
-			if (option.type === ApplicationCommandOptionType.Subcommand) {
-				const cmd = commands.find((c) => c.name === option.name);
-				if (!cmd) throw new Error("Subcommand not found");
-				if (cmd.type === "SubcommandGroup") throw new Error("oops");
-				// biome-ignore lint/style/noNonNullAssertion: the options will be there as it is a subcommand
-				interaction.data.options = option.options!;
-				if (!cmd.AutocompleteHandler)
-					throw new Error(
-						`Command ${cmd.name} does not have an autocomplete handler`,
-					);
-				return cmd.AutocompleteHandler(interaction, env);
-			}
-			if (option.type === ApplicationCommandOptionType.SubcommandGroup) {
-				const group = commands.find(
-					(c) => c.name === option.name && c.type === "SubcommandGroup",
-				);
-				if (!group) throw new Error("Command group not found");
-				if (group.type === "Command") throw new Error("not the right one");
-				const groupOption = option.options[0];
-				const cmdName = groupOption.name;
-				const cmd = group.subcommands.find((c) => c.name === cmdName);
-				if (!cmd) throw new Error("Subcommand not found");
+		AutocompleteHandler: async (interaction) => {
+			const groupName = interaction.options.getSubcommandGroup();
+			if (groupName) {
+				const subcommandName = interaction.options.getSubcommand(true);
 
-				// biome-ignore lint/style/noNonNullAssertion: the options will be there as it is a subcommand
-				interaction.data.options = groupOption.options!;
+				const group = commands.find(
+					(c) => c.name === groupName && c.type === "SubcommandGroup",
+				);
+				if (!group) throw new Error(`Command group ${group} not found`);
+				if (group.type !== "SubcommandGroup")
+					throw new Error("not the right one");
+				const cmd = group.subcommands.find((c) => c.name === subcommandName);
+				if (!cmd) throw new Error(`Subcommand ${subcommandName} not found`);
+
 				if (!cmd.AutocompleteHandler)
 					throw new Error(
-						`Command ${option.name}/${cmd.name} does not have an autocomplete handler`,
+						`Subcommand ${subcommandName} has no autocomplete handler`,
 					);
-				return cmd.AutocompleteHandler(interaction, env);
+
+				return cmd.AutocompleteHandler(interaction);
 			}
-			throw new Error("Command not handled");
+
+			const cmdName = interaction.options.getSubcommand(true);
+			const cmd = commands.find((c) => c.name === cmdName);
+			if (!cmd) throw new Error("Subcommand not found");
+			if (cmd.type === "SubcommandGroup") throw new Error("oops");
+			if (!cmd.AutocompleteHandler)
+				throw new Error(`Command ${cmdName} has no autocomplete handler`);
+
+			return cmd.AutocompleteHandler(interaction);
 		},
 		name: name,
 	};

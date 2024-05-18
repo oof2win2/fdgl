@@ -1,6 +1,6 @@
 import { InteractionResponseType, type APIEmbed } from "discord-api-types/v10";
-import type { ChatInputCommandHandler } from "@/utils/commands";
-import type { CommandConfig } from "@/utils/commands/types";
+import type { ChatInputCommandHandler } from "$utils/commands";
+import type { CommandConfig } from "$utils/commands/types";
 
 const handler: ChatInputCommandHandler = async (interaction, env) => {
 	const guildId = interaction.guild_id;

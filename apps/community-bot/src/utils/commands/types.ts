@@ -1,18 +1,15 @@
 import type {
-	APIApplicationCommandAutocompleteInteraction,
-	APIApplicationCommandAutocompleteResponse,
-	APIApplicationCommandBasicOption,
-	APIChatInputApplicationCommandInteraction,
-	APIInteractionResponse,
-} from "discord-api-types/v10";
-import type { CustomEnv } from "../../types";
+	AutocompleteInteraction,
+	ChatInputCommandInteraction,
+	SlashCommandBuilder,
+	SlashCommandSubcommandBuilder,
+} from "discord.js";
 
 export type CommandConfig = {
 	name: string;
-	description: string;
 	type: "Command";
 
-	options?: APIApplicationCommandBasicOption[];
+	command: SlashCommandSubcommandBuilder | SlashCommandBuilder;
 
 	ChatInputHandler: ChatInputCommandHandler;
 	AutocompleteHandler?: AutocompleteHandler;
@@ -40,14 +37,12 @@ export type Command =
 	| CommandWithSubcommands;
 
 export type ChatInputCommandHandler = (
-	interaction: APIChatInputApplicationCommandInteraction,
-	env: CustomEnv,
-) => Promise<APIInteractionResponse>;
+	interaction: ChatInputCommandInteraction,
+) => Promise<void>;
 
 export type AutocompleteHandler = (
-	interaction: APIApplicationCommandAutocompleteInteraction,
-	env: CustomEnv,
-) => Promise<APIApplicationCommandAutocompleteResponse>;
+	interaction: AutocompleteInteraction,
+) => Promise<void>;
 
 export type CommandExecutionData = {
 	ChatInputHandler: ChatInputCommandHandler;

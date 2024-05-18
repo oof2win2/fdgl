@@ -1,6 +1,6 @@
 import List from "./list";
 import Search from "./search";
-import { createRegister, createHandler } from "@/utils/commands";
+import { createRegister, createHandler } from "$utils/commands";
 
 const Config = {
 	name: "categories",

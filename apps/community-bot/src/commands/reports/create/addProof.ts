@@ -6,7 +6,7 @@ import type {
 	AutocompleteHandler,
 	ChatInputCommandHandler,
 	CommandConfig,
-} from "@/utils/commands";
+} from "$utils/commands";
 import { getFilterObject } from "@/utils/getFilterObject";
 import {
 	getAttachmentOption,

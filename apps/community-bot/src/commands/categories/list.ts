@@ -1,28 +1,28 @@
+import type { ChatInputCommandHandler, CommandConfig } from "$utils/commands";
+import { datePlus } from "itty-time";
+import { fdgl } from "$utils/fdgl";
 import {
 	ButtonStyle,
 	ComponentType,
-	InteractionResponseType,
-	MessageFlags,
-	type APIEmbed,
-} from "discord-api-types/v10";
-import type { ChatInputCommandHandler, CommandConfig } from "@/utils/commands";
-import { datePlus } from "itty-time";
+	EmbedBuilder,
+	SlashCommandSubcommandBuilder,
+} from "discord.js";
+import { db } from "$utils/db";
 
-const handler: ChatInputCommandHandler = async (interaction, env) => {
-	const categories = await env.FDGL.categories.getAllCategories();
+const handler: ChatInputCommandHandler = async (interaction) => {
+	const categories = await fdgl.categories.getAll();
 
-	if (!categories.length)
-		return {
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: "There are currently no categories in the FDGL system",
-				flags: MessageFlags.Ephemeral,
-			},
-		};
+	if (!categories.length) {
+		await interaction.reply({
+			content: "There are currently no categories in the FDGL system",
+			ephemeral: true,
+		});
+		return;
+	}
 
-	const embed: APIEmbed = {};
-	embed.title = "FDGL Categories";
-	embed.description = "All Categories within the FDGL system";
+	const embed = new EmbedBuilder();
+	embed.setTitle("FDGL Categories");
+	embed.setDescription("All Categories within the FDGL system");
 
 	const fields = categories.map((category) => {
 		return {
@@ -31,9 +31,10 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 		};
 	});
 
-	embed.fields = fields.slice(0, 10);
+	embed.setFields(fields.slice(0, 10));
 
-	await env.DB.insertInto("PagedData")
+	await db
+		.insertInto("PagedData")
 		.values({
 			id: interaction.id,
 			currentPage: 0,
@@ -42,37 +43,40 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 		})
 		.execute();
 
-	return {
-		type: InteractionResponseType.ChannelMessageWithSource,
-		data: {
-			embeds: [embed],
-			components: [
-				{
-					type: ComponentType.ActionRow,
-					components: [
-						{
-							type: ComponentType.Button,
-							custom_id: "paging_prev",
-							style: ButtonStyle.Primary,
-							emoji: { name: "⬅️" },
-						},
-						{
-							type: ComponentType.Button,
-							custom_id: "paging_next",
-							style: ButtonStyle.Primary,
-							emoji: { name: "➡️" },
-						},
-					],
-				},
-			],
-		},
-	};
+	await interaction.reply({
+		embeds: [embed],
+		components: [
+			{
+				type: ComponentType.ActionRow,
+				components: [
+					{
+						type: ComponentType.Button,
+						custom_id: "paging_prev",
+						style: ButtonStyle.Primary,
+						emoji: { name: "⬅️" },
+					},
+					{
+						type: ComponentType.Button,
+						custom_id: "paging_next",
+						style: ButtonStyle.Primary,
+						emoji: { name: "➡️" },
+					},
+				],
+			},
+		],
+	});
 };
+
+const name = "list";
+
+const cmd = new SlashCommandSubcommandBuilder()
+	.setName(name)
+	.setDescription("List all categories present in FDGL");
 
 const Config: CommandConfig = {
 	name: "list",
-	description: "List all categories present in FDGL",
 	type: "Command",
+	command: cmd,
 	ChatInputHandler: handler,
 };
 

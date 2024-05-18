@@ -1,42 +1,33 @@
-import {
-	ApplicationCommandOptionType,
-	InteractionResponseType,
-	MessageFlags,
-	type APIEmbed,
-} from "discord-api-types/v10";
 import type {
 	CommandConfig,
 	AutocompleteHandler,
 	ChatInputCommandHandler,
-} from "@/utils/commands";
-import {
-	getFocusedInteractionOption,
-	getStringOption,
-} from "@/utils/discord/getCommandOption";
+} from "$utils/commands";
 import { stringSimilarity } from "string-similarity-js";
+import { fdgl } from "$utils/fdgl";
+import {
+	ApplicationCommandOptionType,
+	EmbedBuilder,
+	SlashCommandSubcommandBuilder,
+} from "discord.js";
 
 const CATEGORY_OPTION_NAME = "category" as const;
 
-const handler: ChatInputCommandHandler = async (interaction, env) => {
-	const id = getStringOption(
-		interaction.data.options,
-		CATEGORY_OPTION_NAME,
-		true,
-	);
-	const category = await env.FDGL.categories.getCategory(id);
+const handler: ChatInputCommandHandler = async (interaction) => {
+	const id = interaction.options.getString(CATEGORY_OPTION_NAME, true);
+	const category = await fdgl.categories.getById(id);
 
-	if (!category)
-		return {
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: "The category could not be found",
-				flags: MessageFlags.Ephemeral,
-			},
-		};
+	if (!category) {
+		await interaction.reply({
+			content: "The category could not be found",
+			ephemeral: true,
+		});
+		return;
+	}
 
-	const embed: APIEmbed = {};
-	embed.title = "FDGL Category Info";
-	embed.fields = [
+	const embed = new EmbedBuilder();
+	embed.setTitle("FDGL Category Info");
+	embed.setFields(
 		{
 			name: "Category Name",
 			value: category.name,
@@ -45,22 +36,20 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 			name: "Category Description",
 			value: category.description,
 		},
-	];
+	);
 
-	return {
-		type: InteractionResponseType.ChannelMessageWithSource,
-		data: {
-			embeds: [embed],
-		},
-	};
+	await interaction.reply({
+		embeds: [embed],
+	});
+	return;
 };
 
-const autocomplete: AutocompleteHandler = async (interaction, env) => {
-	const categories = await env.FDGL.categories.getAllCategories();
-	const focused = getFocusedInteractionOption(
-		interaction.data.options,
-		ApplicationCommandOptionType.String,
-	);
+const autocomplete: AutocompleteHandler = async (interaction) => {
+	const categories = await fdgl.categories.getAll();
+	const focused = interaction.options.getFocused(true);
+	if (focused.type !== ApplicationCommandOptionType.String) {
+		throw new Error("wtf");
+	}
 	const sortedBySimilarity = categories
 		.map((c) => ({
 			name: c.name,
@@ -68,27 +57,23 @@ const autocomplete: AutocompleteHandler = async (interaction, env) => {
 			sim: focused ? stringSimilarity(c.name, focused.value) : 0,
 		}))
 		.sort((a, b) => b.sim - a.sim);
-	return {
-		type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-		data: {
-			choices: sortedBySimilarity.slice(0, 10), // max of 25 autocomplete options
-		},
-	};
+
+	await interaction.respond(sortedBySimilarity);
 };
 
+const name = "search";
+
+const cmd = new SlashCommandSubcommandBuilder()
+	.setName(name)
+	.setDescription("Search through categories present in FDGL")
+	.addStringOption((o) =>
+		o.setName(CATEGORY_OPTION_NAME).setDescription("Name of the category"),
+	);
+
 const Config: CommandConfig = {
-	name: "search",
-	description: "Search through categories present in FDGL",
-	options: [
-		{
-			type: ApplicationCommandOptionType.String,
-			name: CATEGORY_OPTION_NAME,
-			description: "Name of the category",
-			autocomplete: true,
-			required: true,
-		},
-	],
+	name,
 	type: "Command",
+	command: cmd,
 	ChatInputHandler: handler,
 	AutocompleteHandler: autocomplete,
 };

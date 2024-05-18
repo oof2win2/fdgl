@@ -7,7 +7,7 @@ import { getStringOption } from "@/utils/discord/getCommandOption";
 import type {
 	CommandConfig,
 	ChatInputCommandHandler,
-} from "@/utils/commands/types";
+} from "$utils/commands/types";
 import { respondWithText } from "@/utils/discord/respond";
 
 const REPORTID_OPTION_NAME = "reportid";

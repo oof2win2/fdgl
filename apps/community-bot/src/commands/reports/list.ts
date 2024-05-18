@@ -13,7 +13,7 @@ import {
 import type {
 	CommandConfig,
 	ChatInputCommandHandler,
-} from "@/utils/commands/types";
+} from "$utils/commands/types";
 import { getFilterObject } from "@/utils/getFilterObject";
 import { respond, respondWithText } from "@/utils/discord/respond";
 import { datePlus } from "itty-time";

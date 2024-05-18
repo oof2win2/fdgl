@@ -1,4 +1,4 @@
-import type { SubcommandGroupConfig } from "@/utils/commands/types";
+import type { SubcommandGroupConfig } from "$utils/commands/types";
 import StartReportCreation from "./start";
 import AddCategory from "./addCategory";
 import RemoveCategory from "./removeCategory";

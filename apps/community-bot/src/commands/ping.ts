@@ -2,35 +2,30 @@ import {
 	createRegister,
 	createHandler,
 	type ChatInputCommandHandler,
-} from "@/utils/commands";
+} from "$utils/commands";
 import { InteractionResponseType, MessageFlags } from "discord-api-types/v10";
+import { SlashCommandBuilder } from "discord.js";
 
 const Config = {
 	name: "ping",
 	description: "Ping the bot",
 };
 
-const handler: ChatInputCommandHandler = async () => {
-	return {
-		type: InteractionResponseType.ChannelMessageWithSource,
-		data: {
-			content: "Pong!",
-			flags: MessageFlags.Ephemeral,
-		},
-	};
+const handler: ChatInputCommandHandler = async (interaction) => {
+	await interaction.reply({
+		content: "Pong!",
+		ephemeral: true,
+	});
 };
 
-export const Register = createRegister({
-	name: Config.name,
-	description: Config.description,
-	type: "Command",
-	ChatInputHandler: handler,
-});
+const command = new SlashCommandBuilder()
+	.setName(Config.name)
+	.setDescription(Config.description);
 
 const Handler = createHandler({
 	name: Config.name,
-	description: Config.description,
 	type: "Command",
+	command,
 	ChatInputHandler: handler,
 });
 

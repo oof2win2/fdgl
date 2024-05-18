@@ -15,7 +15,7 @@ generator kysely {
 
 datasource db {
     provider = "sqlite"
-    url      = "bob.sqlite" // wont be used
+    url      = env("PRISMA_DATABASE_URL")
 }
 
 model PagedData {

@@ -1,4 +1,4 @@
-import type { SubcommandGroupConfig } from "@/utils/commands/types";
+import type { SubcommandGroupConfig } from "$utils/commands/types";
 import Add from "./add";
 import Remove from "./remove";
 import View from "./view";

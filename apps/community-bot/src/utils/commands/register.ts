@@ -54,18 +54,17 @@ function commandWithSubcommandGroupsRegister(
 	};
 }
 
-export function createRegister(
-	command: Command,
-): RESTPostAPIApplicationGuildCommandsJSONBody {
-	if (command.type === "Command")
-		return {
-			name: command.name,
-			description: command.description,
-			options: command.options,
-			type: ApplicationCommandType.ChatInput,
-		};
-	return commandWithSubcommandGroupsRegister(
-		{ name: command.name, description: command.description },
-		command.subcommands,
-	);
+export function createRegister(command: Command): void {
+	// throw new Error("unimplemented");
+	// if (command.type === "Command")
+	// 	return {
+	// 		name: command.name,
+	// 		description: command.description,
+	// 		options: command.options,
+	// 		type: ApplicationCommandType.ChatInput,
+	// 	};
+	// return commandWithSubcommandGroupsRegister(
+	// 	{ name: command.name, description: command.description },
+	// 	command.subcommands,
+	// );
 }

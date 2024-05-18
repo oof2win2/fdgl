@@ -1,4 +1,4 @@
-import { createHandler, createRegister } from "@/utils/commands";
+import { createHandler, createRegister } from "$utils/commands";
 import CreateReport from "./create";
 import ListReports from "./list";
 import Detailed from "./detailed";

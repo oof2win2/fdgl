@@ -1,39 +1,35 @@
+import type { ChatInputCommandHandler, CommandConfig } from "$utils/commands";
+import { getFilterObject } from "$utils/getFilterObject";
+import { datePlus } from "itty-time";
+import { fdgl } from "$utils/fdgl";
+import { db } from "$utils/db";
 import {
-	ButtonStyle,
-	ComponentType,
-	InteractionResponseType,
 	type APIEmbed,
 	type APIEmbedField,
-} from "discord-api-types/v10";
-import type { ChatInputCommandHandler, CommandConfig } from "@/utils/commands";
-import { getFilterObject } from "@/utils/getFilterObject";
-import { datePlus } from "itty-time";
+	ComponentType,
+	ButtonStyle,
+	SlashCommandSubcommandBuilder,
+} from "discord.js";
 
-const handler: ChatInputCommandHandler = async (interaction, env) => {
-	const guildId = interaction.guild_id;
-	if (!guildId)
-		return {
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: "This command must be ran in a guild",
-			},
-		};
-
-	const filterObject = await getFilterObject(guildId, env);
-	if (filterObject.filteredCategories.length === 0) {
-		return {
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: "You don't have any category filters set",
-			},
-		};
+const handler: ChatInputCommandHandler = async (interaction) => {
+	if (!interaction.inGuild()) {
+		await interaction.reply({
+			content: "This command must be ran in a guild",
+		});
+		return;
 	}
-	const categories = await env.FDGL.categories.getAllCategories();
+
+	const filterObject = await getFilterObject(interaction.guildId);
+	if (filterObject.categoryFilters.length === 0) {
+		await interaction.reply("You don't have any category filters set");
+		return;
+	}
+	const categories = await fdgl.categories.getAll();
 
 	const embed: APIEmbed = {};
 	embed.title = "FDGL Filtered Categories";
 	embed.description = "List of all categories in this guild's filters";
-	const fields: APIEmbedField[] = filterObject.filteredCategories.map((id) => {
+	const fields: APIEmbedField[] = filterObject.categoryFilters.map((id) => {
 		// biome-ignore lint/style/noNonNullAssertion: The category must exist in the filter object
 		const category = categories.find((c) => c.id === id)!;
 		return {
@@ -43,7 +39,8 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 	});
 	embed.fields = fields.slice(0, 10);
 
-	await env.DB.insertInto("PagedData")
+	await db
+		.insertInto("PagedData")
 		.values({
 			id: interaction.id,
 			currentPage: 0,
@@ -52,36 +49,39 @@ const handler: ChatInputCommandHandler = async (interaction, env) => {
 		})
 		.execute();
 
-	return {
-		type: InteractionResponseType.ChannelMessageWithSource,
-		data: {
-			embeds: [embed],
-			components: [
-				{
-					type: ComponentType.ActionRow,
-					components: [
-						{
-							type: ComponentType.Button,
-							custom_id: "paging_prev",
-							style: ButtonStyle.Primary,
-							emoji: { name: "⬅️" },
-						},
-						{
-							type: ComponentType.Button,
-							custom_id: "paging_next",
-							style: ButtonStyle.Primary,
-							emoji: { name: "➡️" },
-						},
-					],
-				},
-			],
-		},
-	};
+	await interaction.reply({
+		embeds: [embed],
+		components: [
+			{
+				type: ComponentType.ActionRow,
+				components: [
+					{
+						type: ComponentType.Button,
+						custom_id: "paging_prev",
+						style: ButtonStyle.Primary,
+						emoji: { name: "⬅️" },
+					},
+					{
+						type: ComponentType.Button,
+						custom_id: "paging_next",
+						style: ButtonStyle.Primary,
+						emoji: { name: "➡️" },
+					},
+				],
+			},
+		],
+	});
+	return;
 };
 
+const name = "view";
+const command = new SlashCommandSubcommandBuilder()
+	.setName(name)
+	.setDescription("View categories present in your filters");
+
 const Config: CommandConfig = {
-	name: "view",
-	description: "View categories present in your filters",
+	name,
+	command,
 	type: "Command",
 	ChatInputHandler: handler,
 };
